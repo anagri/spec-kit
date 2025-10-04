@@ -2,16 +2,9 @@
 set -euo pipefail
 
 # create-release-packages.sh (workflow-local)
-# Build Spec Kit template release archives for each supported AI assistant and script type.
+# Build Spec Kit template release archive for Claude Code with bash scripts.
 # Usage: .github/workflows/scripts/create-release-packages.sh <version>
 #   Version argument should include leading 'v'.
-#   Optionally set AGENTS and/or SCRIPTS env vars to limit what gets built.
-#     AGENTS  : space or comma separated subset of: claude gemini copilot cursor qwen opencode windsurf codex (default: all)
-#     SCRIPTS : space or comma separated subset of: sh ps (default: both)
-#   Examples:
-#     AGENTS=claude SCRIPTS=sh $0 v0.2.0
-#     AGENTS="copilot,gemini" $0 v0.2.0
-#     SCRIPTS=ps $0 v0.2.0
 
 if [[ $# -ne 1 ]]; then
   echo "Usage: $0 <version-with-v-prefix>" >&2
@@ -84,9 +77,8 @@ generate_commands() {
 }
 
 build_variant() {
-  local agent=$1 script=$2
-  local base_dir="$GENRELEASES_DIR/sdd-${agent}-package-${script}"
-  echo "Building $agent ($script) package..."
+  local base_dir="$GENRELEASES_DIR/sdd-claude-package-sh"
+  echo "Building Claude Code (bash) package..."
   mkdir -p "$base_dir"
   
   # Copy base structure but filter scripts by variant
@@ -95,137 +87,54 @@ build_variant() {
   
   [[ -d memory ]] && { cp -r memory "$SPEC_DIR/"; echo "Copied memory -> .specify"; }
   
-  # Only copy the relevant script variant directory
-  if [[ -d scripts ]]; then
+  # Copy bash scripts
+  if [[ -d scripts/bash ]]; then
     mkdir -p "$SPEC_DIR/scripts"
-    case $script in
-      sh)
-        [[ -d scripts/bash ]] && { cp -r scripts/bash "$SPEC_DIR/scripts/"; echo "Copied scripts/bash -> .specify/scripts"; }
-        # Copy any script files that aren't in variant-specific directories
-        find scripts -maxdepth 1 -type f -exec cp {} "$SPEC_DIR/scripts/" \; 2>/dev/null || true
-        ;;
-      ps)
-        [[ -d scripts/powershell ]] && { cp -r scripts/powershell "$SPEC_DIR/scripts/"; echo "Copied scripts/powershell -> .specify/scripts"; }
-        # Copy any script files that aren't in variant-specific directories
-        find scripts -maxdepth 1 -type f -exec cp {} "$SPEC_DIR/scripts/" \; 2>/dev/null || true
-        ;;
-    esac
+    cp -r scripts/bash "$SPEC_DIR/scripts/"
+    echo "Copied scripts/bash -> .specify/scripts"
+    # Copy any script files that aren't in variant-specific directories
+    find scripts -maxdepth 1 -type f -exec cp {} "$SPEC_DIR/scripts/" \; 2>/dev/null || true
   fi
   
-  [[ -d templates ]] && { mkdir -p "$SPEC_DIR/templates"; find templates -type f -not -path "templates/commands/*" -exec cp --parents {} "$SPEC_DIR"/ \; ; echo "Copied templates -> .specify/templates"; }
-  # Inject variant into plan-template.md within .specify/templates if present
+  # Copy templates (excluding commands directory - those are generated)
+  if [[ -d templates ]]; then
+    mkdir -p "$SPEC_DIR/templates"
+    # Copy all template files while preserving directory structure
+    (cd templates && find . -type f -not -path "./commands/*" | while read -r file; do
+      mkdir -p "$SPEC_DIR/templates/$(dirname "$file")"
+      cp "$file" "$SPEC_DIR/templates/$file"
+    done)
+    echo "Copied templates -> .specify/templates"
+  fi
+
+  # Inject script command into plan-template.md within .specify/templates if present
   local plan_tpl="$base_dir/.specify/templates/plan-template.md"
   if [[ -f "$plan_tpl" ]]; then
     plan_norm=$(tr -d '\r' < "$plan_tpl")
-    # Extract script command from YAML frontmatter
-    script_command=$(printf '%s\n' "$plan_norm" | awk -v sv="$script" '/^[[:space:]]*'"$script"':[[:space:]]*/ {sub(/^[[:space:]]*'"$script"':[[:space:]]*/, ""); print; exit}')
+    # Extract script command from YAML frontmatter (sh only)
+    script_command=$(printf '%s\n' "$plan_norm" | awk '/^[[:space:]]*sh:[[:space:]]*/ {sub(/^[[:space:]]*sh:[[:space:]]*/, ""); print; exit}')
     if [[ -n $script_command ]]; then
       # Always prefix with .specify/ for plan usage
       script_command=".specify/$script_command"
-      # Replace {SCRIPT} placeholder with the script command and __AGENT__ with agent name
-      substituted=$(sed "s|{SCRIPT}|${script_command}|g" "$plan_tpl" | tr -d '\r' | sed "s|__AGENT__|${agent}|g")
+      # Replace {SCRIPT} placeholder with the script command and __AGENT__ with claude
+      substituted=$(sed "s|{SCRIPT}|${script_command}|g" "$plan_tpl" | tr -d '\r' | sed "s|__AGENT__|claude|g")
       # Strip YAML frontmatter from plan template output (keep body only)
       stripped=$(printf '%s\n' "$substituted" | awk 'BEGIN{fm=0;dash=0} /^---$/ {dash++; if(dash==1){fm=1; next} else if(dash==2){fm=0; next}} {if(!fm) print}')
       printf '%s\n' "$stripped" > "$plan_tpl"
     else
-      echo "Warning: no plan-template script command found for $script in YAML frontmatter" >&2
+      echo "Warning: no plan-template script command found for sh in YAML frontmatter" >&2
     fi
   fi
-  # NOTE: We substitute {ARGS} internally. Outward tokens differ intentionally:
-  #   * Markdown/prompt (claude, copilot, cursor, opencode): $ARGUMENTS
-  #   * TOML (gemini, qwen): {{args}}
-  # This keeps formats readable without extra abstraction.
 
-  case $agent in
-    claude)
-      mkdir -p "$base_dir/.claude/commands"
-      generate_commands claude md "\$ARGUMENTS" "$base_dir/.claude/commands" "$script" ;;
-    gemini)
-      mkdir -p "$base_dir/.gemini/commands"
-      generate_commands gemini toml "{{args}}" "$base_dir/.gemini/commands" "$script"
-      [[ -f agent_templates/gemini/GEMINI.md ]] && cp agent_templates/gemini/GEMINI.md "$base_dir/GEMINI.md" ;;
-    copilot)
-      mkdir -p "$base_dir/.github/prompts"
-      generate_commands copilot prompt.md "\$ARGUMENTS" "$base_dir/.github/prompts" "$script" ;;
-    cursor)
-      mkdir -p "$base_dir/.cursor/commands"
-      generate_commands cursor md "\$ARGUMENTS" "$base_dir/.cursor/commands" "$script" ;;
-    qwen)
-      mkdir -p "$base_dir/.qwen/commands"
-      generate_commands qwen toml "{{args}}" "$base_dir/.qwen/commands" "$script"
-      [[ -f agent_templates/qwen/QWEN.md ]] && cp agent_templates/qwen/QWEN.md "$base_dir/QWEN.md" ;;
-    opencode)
-      mkdir -p "$base_dir/.opencode/command"
-      generate_commands opencode md "\$ARGUMENTS" "$base_dir/.opencode/command" "$script" ;;
-    windsurf)
-      mkdir -p "$base_dir/.windsurf/workflows"
-      generate_commands windsurf md "\$ARGUMENTS" "$base_dir/.windsurf/workflows" "$script" ;;
-    codex)
-      mkdir -p "$base_dir/.codex/prompts"
-      generate_commands codex md "\$ARGUMENTS" "$base_dir/.codex/prompts" "$script" ;;
-    kilocode)
-      mkdir -p "$base_dir/.kilocode/workflows"
-      generate_commands kilocode md "\$ARGUMENTS" "$base_dir/.kilocode/workflows" "$script" ;;
-    auggie)
-      mkdir -p "$base_dir/.augment/commands"
-      generate_commands auggie md "\$ARGUMENTS" "$base_dir/.augment/commands" "$script" ;;
-    roo)
-      mkdir -p "$base_dir/.roo/commands"
-      generate_commands roo md "\$ARGUMENTS" "$base_dir/.roo/commands" "$script" ;;
-    q)
-      mkdir -p "$base_dir/.amazonq/prompts"
-      generate_commands q md "\$ARGUMENTS" "$base_dir/.amazonq/prompts" "$script" ;;
-  esac
-  ( cd "$base_dir" && zip -r "../spec-kit-template-${agent}-${script}-${NEW_VERSION}.zip" . )
-  echo "Created $GENRELEASES_DIR/spec-kit-template-${agent}-${script}-${NEW_VERSION}.zip"
+  # Generate Claude Code commands
+  mkdir -p "$base_dir/.claude/commands"
+  generate_commands claude md "\$ARGUMENTS" "$base_dir/.claude/commands" "sh"
+  ( cd "$base_dir" && zip -r "../spec-kit-template-claude-sh-${NEW_VERSION}.zip" . )
+  echo "Created $GENRELEASES_DIR/spec-kit-template-claude-sh-${NEW_VERSION}.zip"
 }
 
-# Determine agent list
-ALL_AGENTS=(claude gemini copilot cursor qwen opencode windsurf codex kilocode auggie roo q)
-ALL_SCRIPTS=(sh ps)
-
-
-norm_list() {
-  # convert comma+space separated -> space separated unique while preserving order of first occurrence
-  tr ',\n' '  ' | awk '{for(i=1;i<=NF;i++){if(!seen[$i]++){printf((out?" ":"") $i)}}}END{printf("\n")}'
-}
-
-validate_subset() {
-  local type=$1; shift; local -n allowed=$1; shift; local items=("$@")
-  local ok=1
-  for it in "${items[@]}"; do
-    local found=0
-    for a in "${allowed[@]}"; do [[ $it == "$a" ]] && { found=1; break; }; done
-    if [[ $found -eq 0 ]]; then
-      echo "Error: unknown $type '$it' (allowed: ${allowed[*]})" >&2
-      ok=0
-    fi
-  done
-  return $ok
-}
-
-if [[ -n ${AGENTS:-} ]]; then
-  mapfile -t AGENT_LIST < <(printf '%s' "$AGENTS" | norm_list)
-  validate_subset agent ALL_AGENTS "${AGENT_LIST[@]}" || exit 1
-else
-  AGENT_LIST=("${ALL_AGENTS[@]}")
-fi
-
-if [[ -n ${SCRIPTS:-} ]]; then
-  mapfile -t SCRIPT_LIST < <(printf '%s' "$SCRIPTS" | norm_list)
-  validate_subset script ALL_SCRIPTS "${SCRIPT_LIST[@]}" || exit 1
-else
-  SCRIPT_LIST=("${ALL_SCRIPTS[@]}")
-fi
-
-echo "Agents: ${AGENT_LIST[*]}"
-echo "Scripts: ${SCRIPT_LIST[*]}"
-
-for agent in "${AGENT_LIST[@]}"; do
-  for script in "${SCRIPT_LIST[@]}"; do
-    build_variant "$agent" "$script"
-  done
-done
+# Build Claude Code with bash scripts package
+build_variant
 
 echo "Archives in $GENRELEASES_DIR:"
 ls -1 "$GENRELEASES_DIR"/spec-kit-template-*-"${NEW_VERSION}".zip
