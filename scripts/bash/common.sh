@@ -12,28 +12,22 @@ get_repo_root() {
     fi
 }
 
-# Get current branch, with fallback for non-git repositories
-get_current_branch() {
+# Get current feature identifier (no git branch dependency)
+get_current_feature() {
     # First check if SPECIFY_FEATURE environment variable is set
     if [[ -n "${SPECIFY_FEATURE:-}" ]]; then
         echo "$SPECIFY_FEATURE"
         return
     fi
-    
-    # Then check git if available
-    if git rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
-        git rev-parse --abbrev-ref HEAD
-        return
-    fi
-    
-    # For non-git repos, try to find the latest feature directory
+
+    # Find the latest feature directory in specs/
     local repo_root=$(get_repo_root)
     local specs_dir="$repo_root/specs"
-    
+
     if [[ -d "$specs_dir" ]]; then
         local latest_feature=""
         local highest=0
-        
+
         for dir in "$specs_dir"/*; do
             if [[ -d "$dir" ]]; then
                 local dirname=$(basename "$dir")
@@ -47,13 +41,13 @@ get_current_branch() {
                 fi
             fi
         done
-        
+
         if [[ -n "$latest_feature" ]]; then
             echo "$latest_feature"
             return
         fi
     fi
-    
+
     echo "main"  # Final fallback
 }
 
@@ -62,22 +56,16 @@ has_git() {
     git rev-parse --show-toplevel >/dev/null 2>&1
 }
 
-check_feature_branch() {
-    local branch="$1"
+check_feature_id() {
+    local feature_id="$1"
     local has_git_repo="$2"
-    
-    # For non-git repos, we can't enforce branch naming but still provide output
-    if [[ "$has_git_repo" != "true" ]]; then
-        echo "[specify] Warning: Git repository not detected; skipped branch validation" >&2
-        return 0
+
+    # Validate feature ID format (warning only, not blocking)
+    if [[ ! "$feature_id" =~ ^[0-9]{3}- ]]; then
+        echo "[specify] Warning: Feature ID doesn't follow convention: $feature_id" >&2
+        echo "[specify] Expected format: 001-feature-name" >&2
     fi
-    
-    if [[ ! "$branch" =~ ^[0-9]{3}- ]]; then
-        echo "ERROR: Not on a feature branch. Current branch: $branch" >&2
-        echo "Feature branches should be named like: 001-feature-name" >&2
-        return 1
-    fi
-    
+
     return 0
 }
 
@@ -85,18 +73,18 @@ get_feature_dir() { echo "$1/specs/$2"; }
 
 get_feature_paths() {
     local repo_root=$(get_repo_root)
-    local current_branch=$(get_current_branch)
+    local current_feature=$(get_current_feature)
     local has_git_repo="false"
-    
+
     if has_git; then
         has_git_repo="true"
     fi
-    
-    local feature_dir=$(get_feature_dir "$repo_root" "$current_branch")
-    
+
+    local feature_dir=$(get_feature_dir "$repo_root" "$current_feature")
+
     cat <<EOF
 REPO_ROOT='$repo_root'
-CURRENT_BRANCH='$current_branch'
+CURRENT_FEATURE='$current_feature'
 HAS_GIT='$has_git_repo'
 FEATURE_DIR='$feature_dir'
 FEATURE_SPEC='$feature_dir/spec.md'

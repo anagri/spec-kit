@@ -12,7 +12,7 @@ $ARGUMENTS
 
 Given the implementation details provided as an argument, do this:
 
-1. Run `{SCRIPT}` from the repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. All future file paths must be absolute.
+1. Run `{SCRIPT}` from the repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, FEATURE_ID. All future file paths must be absolute.
    - BEFORE proceeding, inspect FEATURE_SPEC for a `## Clarifications` section with at least one `Session` subheading. If missing or clearly ambiguous areas remain (vague adjectives, unresolved critical choices), PAUSE and instruct the user to run `/clarify` first to reduce rework. Only continue if: (a) Clarifications exist OR (b) an explicit user override is provided (e.g., "proceed without clarification"). Do not attempt to fabricate clarifications yourself.
 2. Read and analyze the feature specification to understand:
    - The feature requirements and user stories
@@ -40,6 +40,6 @@ Given the implementation details provided as an argument, do this:
    - Ensure all required artifacts were generated
    - Confirm no ERROR states in execution
 
-6. Report results with branch name, file paths, and generated artifacts.
+6. Report results with feature ID, file paths, and generated artifacts.
 
 Use absolute paths with the repository root for all file operations to avoid path issues.
