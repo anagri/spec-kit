@@ -18,10 +18,10 @@ Usage:
     uvx specify-cli.py init --here
 
 Or install globally:
-    uv tool install --from specify-cli.py specify-cli
-    specify init <project-name>
-    specify init .
-    specify init --here
+    uv tool install specify-cli --from git+https://github.com/anagri/spec-kit.git
+    speclaude init <project-name>
+    speclaude init .
+    speclaude init --here
 """
 
 import os
@@ -295,7 +295,7 @@ class BannerGroup(TyperGroup):
 
 
 app = typer.Typer(
-    name="specify",
+    name="speclaude",
     help="Setup tool for Specify spec-driven development projects",
     add_completion=False,
     invoke_without_command=True,
@@ -758,12 +758,12 @@ def init(
     5. Set up Claude Code slash commands
 
     Examples:
-        specify init my-project
-        specify init my-project --no-git
-        specify init my-project --ignore-agent-tools
-        specify init .                     # Initialize in current directory
-        specify init --here                # Alternative syntax for current directory
-        specify init --here --force        # Skip confirmation when current directory not empty
+        speclaude init my-project
+        speclaude init my-project --no-git
+        speclaude init my-project --ignore-agent-tools
+        speclaude init .                     # Initialize in current directory
+        speclaude init --here                # Alternative syntax for current directory
+        speclaude init --here --force        # Skip confirmation when current directory not empty
     """
     # Show banner first
     show_banner()
