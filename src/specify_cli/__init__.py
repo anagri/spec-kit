@@ -67,8 +67,8 @@ def _github_auth_headers(cli_token: str | None = None) -> dict:
 # Constants
 # Hardcoded to Claude Code only (macOS-focused spec-kit)
 AI_AGENT = "claude"
-# Add script type choices
-SCRIPT_TYPE_CHOICES = {"sh": "POSIX Shell (bash/zsh)", "ps": "PowerShell"}
+# Hardcoded to bash/sh scripts (macOS/Unix only)
+SCRIPT_TYPE = "sh"
 
 # Claude CLI local installation path after migrate-installer
 CLAUDE_LOCAL_PATH = Path.home() / ".claude" / "local" / "claude"
@@ -739,7 +739,6 @@ def ensure_executable_scripts(project_path: Path, tracker: StepTracker | None = 
 @app.command()
 def init(
     project_name: str = typer.Argument(None, help="Name for your new project directory (optional if using --here, or use '.' for current directory)"),
-    script_type: str = typer.Option(None, "--script", help="Script type to use: sh or ps"),
     ignore_agent_tools: bool = typer.Option(False, "--ignore-agent-tools", help="Skip checks for Claude Code CLI"),
     no_git: bool = typer.Option(False, "--no-git", help="Skip git repository initialization"),
     here: bool = typer.Option(False, "--here", help="Initialize project in the current directory instead of creating a new one"),
@@ -858,18 +857,10 @@ def init(
             console.print(error_panel)
             raise typer.Exit(1)
     
-    # Determine script type (explicit, interactive, or OS default)
-    if script_type:
-        if script_type not in SCRIPT_TYPE_CHOICES:
-            console.print(f"[red]Error:[/red] Invalid script type '{script_type}'. Choose from: {', '.join(SCRIPT_TYPE_CHOICES.keys())}")
-            raise typer.Exit(1)
-        selected_script = script_type
-    else:
-        # Default to bash/sh
-        selected_script = "sh"
-    
-    console.print(f"[cyan]Selected AI assistant:[/cyan] {selected_ai}")
-    console.print(f"[cyan]Selected script type:[/cyan] {selected_script}")
+    # Always use bash/sh scripts
+    selected_script = SCRIPT_TYPE
+
+    console.print(f"[cyan]Using Claude Code with bash scripts[/cyan]")
     
     # Download and set up project
     # New tree-based progress (no emojis); include earlier substeps
@@ -879,10 +870,10 @@ def init(
     # Pre steps recorded as completed before live rendering
     tracker.add("precheck", "Check required tools")
     tracker.complete("precheck", "ok")
-    tracker.add("ai-select", "Select AI assistant")
-    tracker.complete("ai-select", f"{selected_ai}")
-    tracker.add("script-select", "Select script type")
-    tracker.complete("script-select", selected_script)
+    tracker.add("ai-select", "AI assistant")
+    tracker.complete("ai-select", "claude")
+    tracker.add("script-select", "Script type")
+    tracker.complete("script-select", "sh")
     for key, label in [
         ("fetch", "Fetch latest release"),
         ("download", "Download template"),
@@ -905,7 +896,7 @@ def init(
             local_ssl_context = ssl_context if verify else False
             local_client = httpx.Client(verify=local_ssl_context)
 
-            download_and_extract_template(project_path, selected_ai, selected_script, here, verbose=False, tracker=tracker, client=local_client, debug=debug, github_token=github_token)
+            download_and_extract_template(project_path, selected_ai, SCRIPT_TYPE, here, verbose=False, tracker=tracker, client=local_client, debug=debug, github_token=github_token)
 
             # Ensure scripts are executable (POSIX)
             ensure_executable_scripts(project_path, tracker=tracker)
