@@ -873,12 +873,8 @@ def init(
             raise typer.Exit(1)
         selected_ai = ai_assistant
     else:
-        # Use arrow-key selection interface
-        selected_ai = select_with_arrows(
-            AI_CHOICES, 
-            "Choose your AI assistant:", 
-            "copilot"
-        )
+        # Default to Claude Code
+        selected_ai = "claude"
     
     # Check agent tools unless ignored
     if not ignore_agent_tools:
@@ -935,13 +931,8 @@ def init(
             raise typer.Exit(1)
         selected_script = script_type
     else:
-        # Auto-detect default
-        default_script = "ps" if os.name == "nt" else "sh"
-        # Provide interactive selection similar to AI if stdin is a TTY
-        if sys.stdin.isatty():
-            selected_script = select_with_arrows(SCRIPT_TYPE_CHOICES, "Choose script type (or press Enter)", default_script)
-        else:
-            selected_script = default_script
+        # Default to bash/sh
+        selected_script = "sh"
     
     console.print(f"[cyan]Selected AI assistant:[/cyan] {selected_ai}")
     console.print(f"[cyan]Selected script type:[/cyan] {selected_script}")
