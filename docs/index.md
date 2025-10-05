@@ -1,8 +1,10 @@
-# Spec Kit
+# Spec Kit (Claude Code Edition)
 
 *Build high-quality software faster.*
 
-**An effort to allow organizations to focus on product scenarios rather than writing undifferentiated code with the help of Spec-Driven Development.**
+**A solo-developer-optimized fork enabling focus on product scenarios rather than undifferentiated code through Spec-Driven Development with Claude Code.**
+
+> **Fork Note**: This is `anagri/spec-kit` - a Claude Code-only, bash-only fork of `github/spec-kit` optimized for solo developers on Unix-like systems. See [Philosophy](PHILOSOPHY.md) for rationale.
 
 ## What is Spec-Driven Development?
 
@@ -31,27 +33,31 @@ Spec-Driven Development is a structured process that emphasizes:
 | **Creative Exploration** | Parallel implementations | <ul><li>Explore diverse solutions</li><li>Support multiple technology stacks & architectures</li><li>Experiment with UX patterns</li></ul> |
 | **Iterative Enhancement** ("Brownfield") | Brownfield modernization | <ul><li>Add features iteratively</li><li>Modernize legacy systems</li><li>Adapt processes</li></ul> |
 
-## Experimental Goals
+## Goals & Philosophy
 
-Our research and experimentation focus on:
+This fork focuses on:
+
+### Simplicity Through Constraint
+- **Claude Code-only**: Eliminate multi-agent complexity, optimize for one AI assistant
+- **Bash-only**: No PowerShell dual implementation burden
+- **Solo developer workflow**: No mandatory git branch creation, work directly on main
+- **Unix-focused**: macOS and Linux (Windows users can use WSL/Git Bash)
+
+See [PHILOSOPHY.md](PHILOSOPHY.md) for detailed architectural rationale.
 
 ### Technology Independence
 - Create applications using diverse technology stacks
-- Validate the hypothesis that Spec-Driven Development is a process not tied to specific technologies, programming languages, or frameworks
+- Validate that Spec-Driven Development is a process not tied to specific technologies, programming languages, or frameworks
 
-### Enterprise Constraints
-- Demonstrate mission-critical application development
-- Incorporate organizational constraints (cloud providers, tech stacks, engineering practices)
-- Support enterprise design systems and compliance requirements
-
-### User-Centric Development
-- Build applications for different user cohorts and preferences
-- Support various development approaches (from vibe-coding to AI-native development)
+### Project Type Flexibility
+- **Web/Mobile Apps**: Generate data models and API contracts
+- **CLI/Template Tools**: Generate template structures and file contracts
+- Adapt artifacts to feature type (not one-size-fits-all)
 
 ### Creative & Iterative Processes
-- Validate the concept of parallel implementation exploration
-- Provide robust iterative feature development workflows
-- Extend processes to handle upgrades and modernization tasks
+- Validate the concept of iterative feature development
+- Provide robust workflows for adding features and modernizing code
+- Support both greenfield and brownfield development
 
 ## Contributing
 

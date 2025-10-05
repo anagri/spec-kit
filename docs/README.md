@@ -1,6 +1,8 @@
 # Documentation
 
-This folder contains the documentation source files for Spec Kit, built using [DocFX](https://dotnet.github.io/docfx/).
+This folder contains the documentation source files for Spec Kit (Claude Code edition), built using [DocFX](https://dotnet.github.io/docfx/).
+
+> **Fork Note**: This is `anagri/spec-kit`, a Claude Code-only, bash-only fork of `github/spec-kit` optimized for solo developers on Unix-like systems. The docs have been updated to reflect this fork's constraints and focus.
 
 ## Building Locally
 

@@ -1,16 +1,14 @@
 # Local Development Guide
 
-This guide shows how to iterate on the `specify` CLI locally without publishing a release or committing to `main` first.
+This guide shows how to iterate on the `speclaude` CLI locally without publishing a release or committing to `main` first.
 
-> Scripts now have both Bash (`.sh`) and PowerShell (`.ps1`) variants. The CLI auto-selects based on OS unless you pass `--script sh|ps`.
+> **Fork Note**: This fork is bash-only, Claude Code-only, optimized for solo developers working directly on main (no feature branch workflow).
 
-## 1. Clone and Switch Branches
+## 1. Clone the Repository
 
 ```bash
 git clone https://github.com/anagri/spec-kit.git
 cd spec-kit
-# Work on a feature branch
-git checkout -b your-feature-branch
 ```
 
 ## 2. Run the CLI Directly (Fastest Feedback)
@@ -20,13 +18,13 @@ You can execute the CLI via the module entrypoint without installing anything:
 ```bash
 # From repo root
 python -m src.specify_cli --help
-python -m src.specify_cli init demo-project --ai claude --ignore-agent-tools --script sh
+python -m src.specify_cli init demo-project --ignore-agent-tools
 ```
 
 If you prefer invoking the script file style (uses shebang):
 
 ```bash
-python src/specify_cli/__init__.py init demo-project --script ps
+python src/specify_cli/__init__.py init demo-project
 ```
 
 ## 3. Use Editable Install (Isolated Environment)
@@ -36,13 +34,13 @@ Create an isolated environment using `uv` so dependencies resolve exactly like e
 ```bash
 # Create & activate virtual env (uv auto-manages .venv)
 uv venv
-source .venv/bin/activate  # or on Windows PowerShell: .venv\Scripts\Activate.ps1
+source .venv/bin/activate
 
 # Install project in editable mode
 uv pip install -e .
 
-# Now 'specify' entrypoint is available
-specify --help
+# Now 'speclaude' entrypoint is available
+speclaude --help
 ```
 
 Re-running after code edits requires no reinstall because of editable mode.
@@ -52,15 +50,15 @@ Re-running after code edits requires no reinstall because of editable mode.
 `uvx` can run from a local path (or a Git ref) to simulate user flows:
 
 ```bash
-uvx --from . specify init demo-uvx --ai copilot --ignore-agent-tools --script sh
+uvx --from . speclaude init demo-uvx --ignore-agent-tools
 ```
 
-You can also point uvx at a specific branch without merging:
+You can also point uvx at a specific branch:
 
 ```bash
 # Push your working branch first
-git push origin your-feature-branch
-uvx --from git+https://github.com/anagri/spec-kit.git@your-feature-branch specify init demo-branch-test --script ps
+git push origin your-branch-name
+uvx --from git+https://github.com/anagri/spec-kit.git@your-branch-name speclaude init demo-branch-test
 ```
 
 ### 4a. Absolute Path uvx (Run From Anywhere)
@@ -68,38 +66,50 @@ uvx --from git+https://github.com/anagri/spec-kit.git@your-feature-branch specif
 If you're in another directory, use an absolute path instead of `.`:
 
 ```bash
-uvx --from /mnt/c/GitHub/spec-kit specify --help
-uvx --from /mnt/c/GitHub/spec-kit specify init demo-anywhere --ai copilot --ignore-agent-tools --script sh
+uvx --from /path/to/spec-kit speclaude --help
+uvx --from /path/to/spec-kit speclaude init demo-anywhere --ignore-agent-tools
 ```
 
 Set an environment variable for convenience:
+
 ```bash
-export SPEC_KIT_SRC=/mnt/c/GitHub/spec-kit
-uvx --from "$SPEC_KIT_SRC" specify init demo-env --ai copilot --ignore-agent-tools --script ps
+export SPEC_KIT_SRC=/path/to/spec-kit
+uvx --from "$SPEC_KIT_SRC" speclaude init demo-env --ignore-agent-tools
 ```
 
 (Optional) Define a shell function:
+
 ```bash
-specify-dev() { uvx --from /mnt/c/GitHub/spec-kit specify "$@"; }
+speclaude-dev() { uvx --from /path/to/spec-kit speclaude "$@"; }
 # Then
-specify-dev --help
+speclaude-dev --help
 ```
 
 ## 5. Testing Script Permission Logic
 
-After running an `init`, check that shell scripts are executable on POSIX systems:
+After running an `init`, check that shell scripts are executable on macOS/Linux:
 
 ```bash
-ls -l scripts | grep .sh
+ls -l .specify/scripts/bash/ | grep .sh
 # Expect owner execute bit (e.g. -rwxr-xr-x)
 ```
-On Windows you will instead use the `.ps1` scripts (no chmod needed).
+
+This fork only generates `.sh` scripts (no `.ps1` PowerShell scripts).
 
 ## 6. Run Lint / Basic Checks (Add Your Own)
 
 Currently no enforced lint config is bundled, but you can quickly sanity check importability:
+
 ```bash
 python -c "import specify_cli; print('Import OK')"
+```
+
+For code formatting, use ruff or black:
+
+```bash
+ruff format src/
+# or
+black src/
 ```
 
 ## 7. Build a Wheel Locally (Optional)
@@ -110,6 +120,7 @@ Validate packaging before publishing:
 uv build
 ls dist/
 ```
+
 Install the built artifact into a fresh throwaway environment if needed.
 
 ## 8. Using a Temporary Workspace
@@ -118,8 +129,9 @@ When testing `init --here` in a dirty directory, create a temp workspace:
 
 ```bash
 mkdir /tmp/spec-test && cd /tmp/spec-test
-python -m src.specify_cli init --here --ai claude --ignore-agent-tools --script sh  # if repo copied here
+python -m src.specify_cli init --here --ignore-agent-tools  # if repo copied here
 ```
+
 Or copy only the modified CLI portion if you want a lighter sandbox.
 
 ## 9. Debug Network / TLS Skips
@@ -127,9 +139,10 @@ Or copy only the modified CLI portion if you want a lighter sandbox.
 If you need to bypass TLS validation while experimenting:
 
 ```bash
-specify check --skip-tls
-specify init demo --skip-tls --ai gemini --ignore-agent-tools --script ps
+speclaude check --skip-tls
+speclaude init demo --skip-tls --ignore-agent-tools
 ```
+
 (Use only for local experimentation.)
 
 ## 10. Rapid Edit Loop Summary
@@ -137,15 +150,16 @@ specify init demo --skip-tls --ai gemini --ignore-agent-tools --script ps
 | Action | Command |
 |--------|---------|
 | Run CLI directly | `python -m src.specify_cli --help` |
-| Editable install | `uv pip install -e .` then `specify ...` |
-| Local uvx run (repo root) | `uvx --from . specify ...` |
-| Local uvx run (abs path) | `uvx --from /mnt/c/GitHub/spec-kit specify ...` |
-| Git branch uvx | `uvx --from git+URL@branch specify ...` |
+| Editable install | `uv pip install -e .` then `speclaude ...` |
+| Local uvx run (repo root) | `uvx --from . speclaude ...` |
+| Local uvx run (abs path) | `uvx --from /path/to/spec-kit speclaude ...` |
+| Git branch uvx | `uvx --from git+URL@branch speclaude ...` |
 | Build wheel | `uv build` |
 
 ## 11. Cleaning Up
 
 Remove build artifacts / virtual env quickly:
+
 ```bash
 rm -rf .venv dist build *.egg-info
 ```
@@ -155,14 +169,79 @@ rm -rf .venv dist build *.egg-info
 | Symptom | Fix |
 |---------|-----|
 | `ModuleNotFoundError: typer` | Run `uv pip install -e .` |
-| Scripts not executable (Linux) | Re-run init or `chmod +x scripts/*.sh` |
+| Scripts not executable (Linux/macOS) | Re-run init or `chmod +x .specify/scripts/bash/*.sh` |
 | Git step skipped | You passed `--no-git` or Git not installed |
-| Wrong script type downloaded | Pass `--script sh` or `--script ps` explicitly |
 | TLS errors on corporate network | Try `--skip-tls` (not for production) |
+| Claude Code CLI not found | Install from https://www.anthropic.com/claude-code |
 
-## 13. Next Steps
+## 13. Dogfooding: Using Spec-Kit to Develop Spec-Kit
+
+This project uses spec-kit methodology to develop itself:
+
+```bash
+# After making changes to templates or scripts
+cd spec-kit
+/constitution    # Update constitution if architectural changes
+/specify         # Create spec for new feature
+/plan            # Generate implementation plan (reads docs/PHILOSOPHY.md)
+/tasks           # Break down into tasks
+/implement       # Execute implementation
+```
+
+**Important**: The `.specify/` and `.claude/` directories in this repo are INSTALLED snapshots (frozen). To change what users receive, edit SOURCE files:
+
+- `templates/` → packaged to `.specify/templates/` in releases
+- `scripts/` → packaged to `.specify/scripts/bash/` in releases
+- `memory/` → packaged to `.specify/memory/` in releases
+- `templates/commands/` → packaged to `.claude/commands/` in releases
+
+See `CLAUDE.md` for detailed dogfooding guidance.
+
+## 14. Version Management
+
+**Every change to `src/specify_cli/__init__.py` requires**:
+
+1. Version bump in `pyproject.toml` (line 3)
+2. Entry in `CHANGELOG.md` with date and description
+3. Follow semantic versioning:
+   - MAJOR: Breaking changes (removed commands, changed arguments)
+   - MINOR: New features (new commands, new flags)
+   - PATCH: Bug fixes, docs, refactoring
+
+**Release Process**:
+
+1. Edit `pyproject.toml`: `version = "X.Y.Z"`
+2. Edit `CHANGELOG.md`: Add entry under new `## [X.Y.Z] - YYYY-MM-DD`
+3. Commit: `git add -A && git commit -m "chore: bump version to X.Y.Z"`
+4. Tag: `git tag vX.Y.Z`
+5. Push: `git push && git push --tags`
+6. GitHub Actions creates release automatically
+7. Verify templates in release logs (look for "deflated XX%" lines)
+
+## 15. Testing Template Changes
+
+After modifying templates in `templates/`:
+
+```bash
+# Test locally before release
+uvx --from . speclaude init test-proj --ignore-agent-tools
+cd test-proj
+
+# Verify directory structure
+ls -la .specify/templates/    # Should have 4 .md files
+ls -la .specify/scripts/bash/ # Should have 5 .sh files
+ls -la .claude/commands/      # Should have slash command files
+
+# Test a slash command
+/specify test feature
+
+# Clean up
+cd .. && rm -rf test-proj
+```
+
+## 16. Next Steps
 
 - Update docs and run through Quick Start using your modified CLI
-- Open a PR when satisfied
+- Test changes with dogfooding (use spec-kit to develop spec-kit)
+- Commit changes following the version discipline in constitution
 - (Optional) Tag a release once changes land in `main`
-

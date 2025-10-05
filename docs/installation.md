@@ -2,11 +2,13 @@
 
 ## Prerequisites
 
-- **Linux/macOS** (or Windows; PowerShell scripts now supported without WSL)
-- AI coding agent: [Claude Code](https://www.anthropic.com/claude-code), [GitHub Copilot](https://code.visualstudio.com/), or [Gemini CLI](https://github.com/google-gemini/gemini-cli)
+- **macOS or Linux** (Windows users: use WSL or Git Bash)
+- [Claude Code CLI](https://www.anthropic.com/claude-code) - this fork supports Claude Code only
 - [uv](https://docs.astral.sh/uv/) for package management
 - [Python 3.11+](https://www.python.org/downloads/)
-- [Git](https://git-scm.com/downloads)
+- [Git](https://git-scm.com/downloads) (optional, can use `--no-git` flag)
+
+> **Note**: This is a Claude Code-only, bash-only fork of spec-kit optimized for solo developers on Unix-like systems.
 
 ## Installation
 
@@ -15,60 +17,79 @@
 The easiest way to get started is to initialize a new project:
 
 ```bash
-uvx --from git+https://github.com/anagri/spec-kit.git specify init <PROJECT_NAME>
+uvx --from git+https://github.com/anagri/spec-kit.git speclaude init <PROJECT_NAME>
 ```
 
 Or initialize in the current directory:
 
 ```bash
-uvx --from git+https://github.com/anagri/spec-kit.git specify init .
+uvx --from git+https://github.com/anagri/spec-kit.git speclaude init .
 # or use the --here flag
-uvx --from git+https://github.com/anagri/spec-kit.git specify init --here
+uvx --from git+https://github.com/anagri/spec-kit.git speclaude init --here
 ```
 
-### Specify AI Agent
+### Optional Flags
 
-You can proactively specify your AI agent during initialization:
+#### Skip git initialization
+
+If you don't want git initialization:
 
 ```bash
-uvx --from git+https://github.com/anagri/spec-kit.git specify init <project_name> --ai claude
-uvx --from git+https://github.com/anagri/spec-kit.git specify init <project_name> --ai gemini
-uvx --from git+https://github.com/anagri/spec-kit.git specify init <project_name> --ai copilot
+uvx --from git+https://github.com/anagri/spec-kit.git speclaude init <project_name> --no-git
 ```
 
-### Specify Script Type (Shell vs PowerShell)
+#### Ignore Agent Tools Check
 
-All automation scripts now have both Bash (`.sh`) and PowerShell (`.ps1`) variants.
+If you prefer to get the templates without checking for Claude Code CLI:
 
-Auto behavior:
-- Windows default: `ps`
-- Other OS default: `sh`
-- Interactive mode: you'll be prompted unless you pass `--script`
-
-Force a specific script type:
 ```bash
-uvx --from git+https://github.com/anagri/spec-kit.git specify init <project_name> --script sh
-uvx --from git+https://github.com/anagri/spec-kit.git specify init <project_name> --script ps
+uvx --from git+https://github.com/anagri/spec-kit.git speclaude init <project_name> --ignore-agent-tools
 ```
 
-### Ignore Agent Tools Check
-
-If you prefer to get the templates without checking for the right tools:
+#### Force initialization in non-empty directory
 
 ```bash
-uvx --from git+https://github.com/anagri/spec-kit.git specify init <project_name> --ai claude --ignore-agent-tools
+uvx --from git+https://github.com/anagri/spec-kit.git speclaude init --here --force
 ```
 
 ## Verification
 
-After initialization, you should see the following commands available in your AI agent:
-- `/specify` - Create specifications
-- `/plan` - Generate implementation plans  
-- `/tasks` - Break down into actionable tasks
+After initialization, you should see the following structure:
 
-The `.specify/scripts` directory will contain both `.sh` and `.ps1` scripts.
+```
+your-project/
+├── .claude/
+│   └── commands/          # Slash commands (/specify, /plan, /tasks, etc.)
+├── .specify/
+│   ├── scripts/bash/      # Automation scripts (.sh files only)
+│   ├── templates/         # Template files
+│   └── memory/           # Constitution and state
+└── specs/                # Feature specifications go here
+```
+
+The following slash commands are now available in Claude Code:
+
+- `/constitution` - Create/update project constitution
+- `/specify` - Create feature specifications
+- `/clarify` - Ask clarification questions for specs
+- `/plan` - Generate implementation plans
+- `/tasks` - Break down into actionable tasks
+- `/analyze` - Cross-artifact consistency check
+- `/implement` - Execute tasks
 
 ## Troubleshooting
+
+### Claude Code CLI not found
+
+Ensure Claude Code CLI is installed and in your PATH:
+
+```bash
+which claude
+# Should output: /Users/<you>/.claude/local/claude (after migrate-installer)
+# or: /opt/homebrew/bin/claude (before migrate-installer)
+```
+
+If not installed, follow the [Claude Code installation instructions](https://www.anthropic.com/claude-code).
 
 ### Git Credential Manager on Linux
 
@@ -86,3 +107,26 @@ git config --global credential.helper manager
 echo "Cleaning up..."
 rm gcm-linux_amd64.2.6.1.deb
 ```
+
+### Scripts not executable
+
+If bash scripts aren't executable on Linux/macOS:
+
+```bash
+chmod +x .specify/scripts/bash/*.sh
+```
+
+### Template download fails
+
+If template download fails, check your internet connection and GitHub access. You can also try with a GitHub token:
+
+```bash
+export GITHUB_TOKEN=your_token
+uvx --from git+https://github.com/anagri/spec-kit.git speclaude init <project_name>
+```
+
+## Next Steps
+
+- Read the [Quick Start Guide](quickstart.md) to begin using spec-kit
+- Review [Local Development Guide](local-development.md) if you want to contribute to spec-kit itself
+- Consult `docs/PHILOSOPHY.md` to understand the architectural philosophy of this fork
