@@ -12,7 +12,12 @@ This is `anagri/spec-kit`, a **Claude Code-only, bash-only, solo-developer fork*
 3. No git branch creation for features (solo dev workflow)
 4. Downloads templates from `anagri/spec-kit` instead of `github/spec-kit`
 
-See `.specify/memory/constitution.md` for complete governance principles.
+**Governance & Architecture Documentation**:
+- `.specify/memory/constitution.md` - The six core principles (WHAT)
+- `docs/PHILOSOPHY.md` - Architectural rationale and patterns (WHY & HOW)
+- `CLAUDE.md` (this file) - Developer workflow and implementation (WHEN & WHERE)
+
+> **For AI Assistants**: When making architectural decisions or debugging complex issues, consult `docs/PHILOSOPHY.md` for the four-layer model, design rationale, and extension patterns. The philosophy document explains WHY the architecture is designed this way, not just WHAT it does.
 
 ## Build and Development Commands
 
@@ -56,6 +61,20 @@ speclaude init test-project --ignore-agent-tools
 ```
 
 ## Architecture Overview
+
+**📖 For Comprehensive Architectural Context**: This section provides implementation-focused guidance. For deep understanding of architectural philosophy, design decisions, and the "why" behind the structure, see [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md).
+
+**Quick Architecture Summary**:
+- **Layer 1 (CLI)**: Python orchestrator - hardcoded for Claude Code + bash
+- **Layer 2 (Templates)**: Markdown execution flows - constrain Claude's output space
+- **Layer 3 (Scripts)**: Bash state automation - no branch creation, JSON communication
+- **Layer 4 (Constitution)**: Six principles - runtime validation via template gates
+
+**When to Consult Philosophy**:
+- 🏗️ **Making architectural changes**: Understand layer boundaries and constraints
+- 🐛 **Debugging complex issues**: See how layers interact via JSON contracts
+- 🔧 **Extending functionality**: Learn valid extension patterns vs. anti-patterns
+- 🤔 **Questioning design decisions**: Read rationale for fork-specific choices
 
 ### Core Components
 
@@ -278,6 +297,12 @@ When pulling changes from `github/spec-kit`:
 
 ## Special Notes
 
+- **📖 Architectural Philosophy**: See [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) for:
+  - Deep dive into the four-layer separation model
+  - Constitutional enforcement patterns and gates
+  - Fork-specific design rationale (why Claude-only, bash-only, no-branches)
+  - Valid extension patterns for slash commands, scripts, and templates
+  - Critical insights: templates as constraint functions, JSON as state boundary
 - **Claude CLI Path**: After `claude migrate-installer`, binary moves to `~/.claude/local/claude`. The `check_tool()` function handles this (src/specify_cli/__init__.py:366-377).
 - **Step Tracker**: Custom Rich-based UI component for progress display (src/specify_cli/__init__.py:87-172). Uses circles (●/○) without emojis.
 - **Template Extraction**: Handles GitHub-style zips with nested directories. Flattens structure automatically (src/specify_cli/__init__.py:649-664).
