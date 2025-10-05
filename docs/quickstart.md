@@ -4,7 +4,7 @@ This guide will help you get started with Spec-Driven Development using Spec Kit
 
 > **Fork Note**: This is a Claude Code-only, bash-only fork optimized for solo developers on Unix-like systems (macOS/Linux).
 
-## The 4-Step Process
+## The 5-Step Process
 
 ### 1. Install Spec-Kit
 
@@ -20,7 +20,85 @@ Or initialize in the current directory:
 uvx --from git+https://github.com/anagri/spec-kit.git speclaude init .
 ```
 
-### 2. Create the Spec
+### 2. Set Up the Constitution
+
+Before creating features, establish your project's governance with the `/constitution` command.
+
+#### Option A: Minimal Input → Clarification (Recommended for new projects)
+
+Provide basic project info and let the clarification workflow guide you:
+
+```bash
+/constitution "Python web application"
+```
+
+**What happens:**
+- Constitution generated with `[NEEDS CLARIFICATION]` markers for missing info
+- Next step: `/clarify-constitution` to answer targeted questions
+- Prevents AI from guessing your principles and tech stack
+
+**Example clarification flow:**
+
+```text
+⚠ Incomplete Sections (4):
+- Architectural Principle
+- Framework
+- Development Workflow
+- Governance policies
+
+Next command: /clarify-constitution
+```
+
+Then run `/clarify-constitution`:
+
+```text
+Q: What is the primary architectural principle?
+
+| Option | Description |
+|--------|-------------|
+| A | Test-first development (write tests before code) |
+| B | Library-first (minimize custom code, use existing libraries) |
+| C | Performance-first (optimize for speed/resource usage) |
+| Short | Provide different principle (≤5 words) |
+
+You: A
+
+✓ Updated Principle I to "Test-First Development"
+
+Q: What Python framework?
+
+| Option | Description |
+|--------|-------------|
+| A | FastAPI (modern async) |
+| B | Django (full-featured) |
+| C | Flask (lightweight) |
+| Short | Different framework (≤5 words) |
+
+You: A
+
+✓ Updated Technology Stack
+...
+```
+
+#### Option B: Comprehensive Input (Skip Clarification)
+
+Provide detailed description upfront:
+
+```bash
+/constitution "This is a Python 3.11 + FastAPI project. Test-first development principle - all features must have tests before code. Solo developer workflow with trunk-based development (direct commits to main). Quarterly constitution review. Project owner can amend constitution. Semantic versioning for constitution changes."
+```
+
+**Result:**
+```text
+✓ All sections complete
+Next command: /specify
+```
+
+**When to use each:**
+- **Minimal → Clarification**: New projects, exploring options, need guidance
+- **Comprehensive**: Know your stack, copy from similar project, experienced team
+
+### 3. Create the Spec
 
 Use the `/specify` command in Claude Code to describe what you want to build. Focus on the **what** and **why**, not the tech stack.
 
@@ -28,7 +106,7 @@ Use the `/specify` command in Claude Code to describe what you want to build. Fo
 /specify Build an application that can help me organize my photos in separate photo albums. Albums are grouped by date and can be re-organized by dragging and dropping on the main page. Albums are never in other nested albums. Within each album, photos are previewed in a tile-like interface.
 ```
 
-### 3. Create a Technical Implementation Plan
+### 4. Create a Technical Implementation Plan
 
 Use the `/plan` command to provide your tech stack and architecture choices.
 
@@ -36,7 +114,7 @@ Use the `/plan` command to provide your tech stack and architecture choices.
 /plan The application uses Vite with minimal number of libraries. Use vanilla HTML, CSS, and JavaScript as much as possible. Images are not uploaded anywhere and metadata is stored in a local SQLite database.
 ```
 
-### 4. Break Down and Implement
+### 5. Break Down and Implement
 
 Use `/tasks` to create an actionable task list, then ask Claude Code to implement the feature.
 

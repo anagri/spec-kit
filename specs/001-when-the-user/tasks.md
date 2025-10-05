@@ -42,7 +42,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
 ## Phase 3.1: Contract Tests (TDD) ⚠️ MUST COMPLETE BEFORE 3.2
 **CRITICAL: These tests MUST be written and MUST FAIL before template implementation**
 
-- [ ] T001 [P] Contract test for /clarify-constitution command execution flow
+- [X] T001 [P] Contract test for /clarify-constitution command execution flow
   **File**: `tests/contract/test_clarify_constitution_output.sh`
   **Contract**: `specs/001-when-the-user/contracts/clarify-constitution-command.md`
   **Validates**:
@@ -53,7 +53,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
   - Integration after each answer
   - Session tracking and soft limit warning
 
-- [ ] T002 [P] Contract test for constitution [NEEDS CLARIFICATION] marker handling
+- [X] T002 [P] Contract test for constitution [NEEDS CLARIFICATION] marker handling
   **File**: `tests/contract/test_constitution_markers.sh`
   **Contract**: `specs/001-when-the-user/contracts/constitution-template.md`
   **Validates**:
@@ -63,7 +63,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
   - Marker removal on clarification
   - Session metadata initialization
 
-- [ ] T003 [P] Contract test for clarification workflow state transitions
+- [X] T003 [P] Contract test for clarification workflow state transitions
   **File**: `tests/contract/test_clarification_workflow.sh`
   **Contract**: `specs/001-when-the-user/contracts/clarification-workflow.md`
   **Validates**:
@@ -75,7 +75,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
 
 ## Phase 3.2: Template Implementation (ONLY after contract tests are failing)
 
-- [ ] T004 Create /clarify-constitution command template
+- [X] T004 Create /clarify-constitution command template
   **File**: `templates/commands/clarify-constitution.md`
   **Contract**: `specs/001-when-the-user/contracts/clarify-constitution-command.md`
   **Implementation**:
@@ -107,7 +107,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
   - Soft limit: Warn at 3 sessions, no hard block
   - Escape hatch: Suggest manual editing if AI misunderstands
 
-- [ ] T005 Modify /constitution command template to support clarification markers
+- [X] T005 Modify /constitution command template to support clarification markers
   **File**: `templates/commands/constitution.md`
   **Contract**: `specs/001-when-the-user/contracts/constitution-template.md`
   **Modifications** (preserve existing functionality):
@@ -132,7 +132,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
 
 ## Phase 3.3: Integration Tests (End-to-End Workflows)
 
-- [ ] T006 [P] Integration test: Minimal input → markers → /clarify-constitution
+- [X] T006 [P] Integration test: Minimal input → markers → /clarify-constitution
   **File**: `tests/integration/test_constitution_minimal_input.sh`
   **Scenario**: Acceptance Scenario 1 from spec.md
   **Steps**:
@@ -206,7 +206,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
 
 ## Phase 3.5: Documentation Updates
 
-- [ ] T012 Update docs/quickstart.md with constitution clarification examples
+- [X] T012 Update docs/quickstart.md with constitution clarification examples
   **File**: `docs/quickstart.md`
   **Reference**: `specs/001-when-the-user/quickstart.md` (feature-specific guide)
   **Changes**:
@@ -216,7 +216,7 @@ This is a CLI/Template/Generator tool (Option 4 from plan.md):
   - Update CLI tool example to mention constitution clarification
   - Add troubleshooting: "No clarifications needed" vs "markers present"
 
-- [ ] T013 Verify memory/constitution.md template supports markers
+- [X] T013 Verify memory/constitution.md template supports markers
   **File**: `memory/constitution.md` (SOURCE template for distribution)
   **Validation**:
   - Template can accept `[NEEDS CLARIFICATION]` in placeholder positions
