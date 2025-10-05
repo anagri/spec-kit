@@ -1,23 +1,19 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.0.0 → 1.0.1 (PATCH - clarification removal)
+Version Change: 1.0.1 → 1.0.2 (PATCH - clarification of dogfooding and governance)
 Modified Principles:
-  - Principle IV (GitHub Release Template Distribution) - Removed note about offline-first bundled templates request
-Added Sections: None
+  - Principle VI (Dogfooding - Self-Application) - Added philosophy consultation requirements
+Added Sections:
+  - Governance: Philosophy Alignment (enforces four-layer architecture)
 Removed Sections: None
 Templates Status:
   ✅ .specify/templates/plan-template.md - Aligned (Constitution Check section)
   ✅ .specify/templates/spec-template.md - Aligned (no constitutional constraints on specs)
   ✅ .specify/templates/tasks-template.md - Aligned (TDD principles reflected)
-  ✅ CLAUDE.md - Aligned (references constitution, describes GitHub release distribution accurately)
-  ⚠ templates/plan-template.md - Needs version reference fix (references v2.1.1, should be generic)
-  ⚠ .specify/templates/plan-template.md - Needs version reference fix (references v2.1.1, should be generic)
-Related Docs Updated:
-  ⚠ docs/PHILOSOPHY.md - Needs update to affirm GitHub releases as architectural decision (not mitigation)
-Follow-up TODOs:
-  - Update plan template version references to use generic "latest version" text
-  - Update PHILOSOPHY.md to remove bundled templates suggestion
+  ✅ docs/PHILOSOPHY.md - Affirms GitHub releases as architectural decision
+  ✅ CLAUDE.md - Updated with philosophy references and dual structure guidance
+Follow-up TODOs: None
 -->
 
 # Spec Kit Constitution
@@ -111,6 +107,8 @@ workflow gaps. Ensures tools remain practical and usable.
 - Specs directory at `specs/` for all features
 - Constitution updated before architectural changes
 - Complex features require spec.md and plan.md
+- Architectural decisions MUST consult docs/PHILOSOPHY.md for layer boundaries
+- Changes MUST align with four-layer model (CLI → Templates → Scripts → Constitution)
 - Templates tested on spec-kit development
 - CLAUDE.md updated with spec-kit-specific practices
 
@@ -175,9 +173,17 @@ readchar, truststore)
 - Simplicity preferred over feature sprawl
 - User preferences in CLAUDE.md respected (no git auto-commits, etc.)
 
+**Philosophy Alignment**:
+- Architectural changes MUST respect four-layer separation (docs/PHILOSOPHY.md)
+- Layer 1 (CLI): No template modification, no multi-agent abstraction
+- Layer 2 (Templates): No side effects, only Claude execution flows
+- Layer 3 (Scripts): JSON output only, no branch creation
+- Layer 4 (Constitution): Gates defined here, philosophy explains implementation
+- Extension patterns MUST follow philosophy guidelines
+
 **Supersedence**:
 - This constitution supersedes conflicting practices
 - When upstream conflicts with principles, fork diverges with documentation
 - Principles guide all architectural and implementation decisions
 
-**Version**: 1.0.1 | **Ratified**: 2025-10-05 | **Last Amended**: 2025-10-05
+**Version**: 1.0.2 | **Ratified**: 2025-10-05 | **Last Amended**: 2025-10-05
