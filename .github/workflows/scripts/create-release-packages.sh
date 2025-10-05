@@ -97,15 +97,7 @@ build_variant() {
   fi
   
   # Copy templates (excluding commands directory - those are generated)
-  if [[ -d templates ]]; then
-    mkdir -p "$SPEC_DIR/templates"
-    # Copy all template files while preserving directory structure
-    (cd templates && find . -type f -not -path "./commands/*" | while read -r file; do
-      mkdir -p "$SPEC_DIR/templates/$(dirname "$file")"
-      cp "$file" "$SPEC_DIR/templates/$file"
-    done)
-    echo "Copied templates -> .specify/templates"
-  fi
+  [[ -d templates ]] && { mkdir -p "$SPEC_DIR/templates"; find templates -type f -not -path "templates/commands/*" -exec cp --parents {} "$SPEC_DIR"/ \; ; echo "Copied templates -> .specify/templates"; }
 
   # Inject script command into plan-template.md within .specify/templates if present
   local plan_tpl="$base_dir/.specify/templates/plan-template.md"
