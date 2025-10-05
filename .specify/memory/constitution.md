@@ -1,20 +1,23 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: NONE → 1.0.0 (Initial ratification)
-Modified Principles: N/A (new constitution)
-Added Sections:
-  - Core Principles (6 principles)
-  - Technology Constraints
-  - Development Workflow
-  - Governance
-Removed Sections: N/A
+Version Change: 1.0.0 → 1.0.1 (PATCH - clarification removal)
+Modified Principles:
+  - Principle IV (GitHub Release Template Distribution) - Removed note about offline-first bundled templates request
+Added Sections: None
+Removed Sections: None
 Templates Status:
-  ✅ .specify/templates/plan-template.md - Aligned (Constitution Check section at line 47-50)
+  ✅ .specify/templates/plan-template.md - Aligned (Constitution Check section)
   ✅ .specify/templates/spec-template.md - Aligned (no constitutional constraints on specs)
   ✅ .specify/templates/tasks-template.md - Aligned (TDD principles reflected)
-  ✅ CLAUDE.md - Aligned (references constitution at line 15)
-Follow-up TODOs: None
+  ✅ CLAUDE.md - Aligned (references constitution, describes GitHub release distribution accurately)
+  ⚠ templates/plan-template.md - Needs version reference fix (references v2.1.1, should be generic)
+  ⚠ .specify/templates/plan-template.md - Needs version reference fix (references v2.1.1, should be generic)
+Related Docs Updated:
+  ⚠ docs/PHILOSOPHY.md - Needs update to affirm GitHub releases as architectural decision (not mitigation)
+Follow-up TODOs:
+  - Update plan template version references to use generic "latest version" text
+  - Update PHILOSOPHY.md to remove bundled templates suggestion
 -->
 
 # Spec Kit Constitution
@@ -80,10 +83,6 @@ templates automatically. Simpler than bundling templates in Python package.
 - Release workflow MUST include all template files in `.specify/templates/`
 - Verify template files present in release zip logs (non-zero deflation percentage)
 - No bundled templates in `src/specify_cli/` package
-
-**Note**: User requested "offline-first bundled templates" but current implementation uses
-GitHub releases. This principle documents the actual implementation. If bundled templates
-are desired, constitution amendment required.
 
 ### V. Version Discipline (NON-NEGOTIABLE)
 
@@ -181,4 +180,4 @@ readchar, truststore)
 - When upstream conflicts with principles, fork diverges with documentation
 - Principles guide all architectural and implementation decisions
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-05 | **Last Amended**: 2025-10-05
+**Version**: 1.0.1 | **Ratified**: 2025-10-05 | **Last Amended**: 2025-10-05
