@@ -54,12 +54,13 @@
 ### Documentation (this feature)
 ```
 specs/[###-feature]/
-├── plan.md              # This file (/plan command output)
-├── research.md          # Phase 0 output (/plan command)
-├── data-model.md        # Phase 1 output (/plan command)
-├── quickstart.md        # Phase 1 output (/plan command)
-├── contracts/           # Phase 1 output (/plan command)
-└── tasks.md             # Phase 2 output (/tasks command - NOT created by /plan)
+├── plan.md                    # This file (/plan command output)
+├── research.md                # Phase 0 output (/plan command)
+├── data-model.md              # Phase 1 output (if feature has entities/storage)
+├── template-contracts.md      # Phase 1 output (if feature is CLI/template/config)
+├── quickstart.md              # Phase 1 output (/plan command)
+├── contracts/                 # Phase 1 output (/plan command)
+└── tasks.md                   # Phase 2 output (/tasks command - NOT created by /plan)
 ```
 
 ### Source Code (repository root)
@@ -103,18 +104,48 @@ api/
 
 ios/ or android/
 └── [platform-specific structure: feature modules, UI flows, platform tests]
+
+# [REMOVE IF UNUSED] Option 4: CLI/Template/Generator tool (when templates/scripts/config detected)
+templates/
+├── commands/           # Slash command templates
+└── *.md               # Template files with placeholders
+
+scripts/
+└── bash/              # Automation scripts (JSON communication)
+
+memory/
+└── *.md               # Configuration/state files
+
+src/
+└── [cli_name]/        # CLI implementation (if applicable)
+
+docs/
+├── PHILOSOPHY.md      # Architectural rationale
+├── quickstart.md
+└── *.md               # User documentation
+
+tests/
+├── contract/          # Template structure tests, JSON schema tests
+└── integration/       # End-to-end CLI workflow tests
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real
 directories captured above]
 
 ## Phase 0: Outline & Research
-1. **Extract unknowns from Technical Context** above:
+1. **Consult project documentation FIRST** (constitutional requirement):
+   - Read docs/PHILOSOPHY.md for architectural patterns and layer boundaries
+   - Read docs/ folder (quickstart.md, local-development.md, installation.md) for workflow context
+   - Read CLAUDE.md for project-specific practices and constraints
+   - Read existing specs/ for similar feature patterns
+   - Only proceed to external research after exhausting internal sources
+
+2. **Extract unknowns from Technical Context** above:
    - For each NEEDS CLARIFICATION → research task
    - For each dependency → best practices task
    - For each integration → patterns task
 
-2. **Generate and dispatch research agents**:
+3. **Generate and dispatch research agents**:
    ```
    For each unknown in Technical Context:
      Task: "Research {unknown} for {feature context}"
@@ -122,16 +153,20 @@ directories captured above]
      Task: "Find best practices for {tech} in {domain}"
    ```
 
-3. **Consolidate findings** in `research.md` using format:
+4. **Consolidate findings** in `research.md` using format:
    - Decision: [what was chosen]
    - Rationale: [why chosen]
    - Alternatives considered: [what else evaluated]
+   - Internal docs consulted: [list docs/ files and sections referenced]
 
 **Output**: research.md with all NEEDS CLARIFICATION resolved
 
 ## Phase 1: Design & Contracts
 *Prerequisites: research.md complete*
 
+**IMPORTANT**: Phase 1 artifacts depend on feature type. Choose appropriate artifacts:
+
+### For Features with Entities/Storage (web apps, mobile apps with databases):
 1. **Extract entities from feature spec** → `data-model.md`:
    - Entity name, fields, relationships
    - Validation rules from requirements
@@ -142,9 +177,21 @@ directories captured above]
    - Use standard REST/GraphQL patterns
    - Output OpenAPI/GraphQL schema to `/contracts/`
 
+### For CLI/Template/Configuration Features (spec-kit, build tools, generators):
+1. **Define template structures** → `template-contracts.md` (instead of data-model.md):
+   - Template file formats (markdown, JSON, YAML)
+   - Placeholder tokens and substitution rules
+   - Directory structure contracts
+
+2. **Generate file/interface contracts** → `/contracts/`:
+   - Command-line interface contracts (arguments, outputs)
+   - JSON communication schemas (between scripts/templates)
+   - File structure contracts (directory layouts, naming conventions)
+
+### Common to All Feature Types:
 3. **Generate contract tests** from contracts:
-   - One test file per endpoint
-   - Assert request/response schemas
+   - One test file per contract
+   - Assert schemas/formats/structure
    - Tests must fail (no implementation yet)
 
 4. **Extract test scenarios** from user stories:
@@ -160,7 +207,7 @@ directories captured above]
    - Keep under 150 lines for token efficiency
    - Output to repository root
 
-**Output**: data-model.md, /contracts/*, failing tests, quickstart.md, agent-specific file
+**Output**: (data-model.md OR template-contracts.md), /contracts/*, failing tests, quickstart.md, agent-specific file
 
 ## Phase 2: Task Planning Approach
 *This section describes what the /tasks command will do - DO NOT execute during /plan*

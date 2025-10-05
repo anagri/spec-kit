@@ -1,18 +1,41 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.0.1 → 1.0.2 (PATCH - clarification of dogfooding and governance)
+Version Change: 1.0.2 → 1.1.0 (MINOR - new governance section + expanded dogfooding principle)
+
 Modified Principles:
-  - Principle VI (Dogfooding - Self-Application) - Added philosophy consultation requirements
+  - Principle VI (Dogfooding - Self-Application):
+    * Added requirement to consult docs/ folder during research phase
+    * Added requirement to make Phase 1 artifacts conditional based on feature type
+    * Clarified that not all features need data-model.md or API contracts
+
 Added Sections:
-  - Governance: Philosophy Alignment (enforces four-layer architecture)
+  - Governance: Research Sources - prioritizes internal docs/ before external research
+    * Primary: docs/ folder (PHILOSOPHY.md, quickstart.md, local-development.md)
+    * Secondary: Project files (CLAUDE.md, README.md, existing specs/)
+    * Tertiary: External sources
+
 Removed Sections: None
-Templates Status:
-  ✅ .specify/templates/plan-template.md - Aligned (Constitution Check section)
-  ✅ .specify/templates/spec-template.md - Aligned (no constitutional constraints on specs)
-  ✅ .specify/templates/tasks-template.md - Aligned (TDD principles reflected)
-  ✅ docs/PHILOSOPHY.md - Affirms GitHub releases as architectural decision
-  ✅ CLAUDE.md - Updated with philosophy references and dual structure guidance
+
+Templates Updated:
+  ✅ .specify/templates/plan-template.md:
+     - Phase 0: Added step 1 requiring docs/ consultation before external research
+     - Phase 1: Made data-model.md conditional, added template-contracts.md alternative
+     - Project Structure: Added Option 4 for CLI/Template/Generator tools
+     - Documentation structure: Added template-contracts.md as alternative to data-model.md
+  ✅ .claude/commands/plan.md:
+     - Added step 3 to read docs/ folder for architectural context
+     - Updated artifact list to show conditional data-model.md OR template-contracts.md
+  ⚠️ .specify/templates/spec-template.md - No changes needed (no constitutional constraints on specs)
+  ⚠️ .specify/templates/tasks-template.md - No changes needed (task generation adapts to Phase 1 artifacts)
+
+Rationale:
+  This update tunes spec-kit templates for dogfooding on atypical projects (CLI tools, template
+  generators) rather than only web/mobile apps. Makes the workflow more flexible by:
+  1. Requiring consultation of project-specific docs before external research
+  2. Allowing feature-appropriate artifacts (template contracts vs data models)
+  3. Adding CLI tool project structure pattern
+
 Follow-up TODOs: None
 -->
 
@@ -107,8 +130,10 @@ workflow gaps. Ensures tools remain practical and usable.
 - Specs directory at `specs/` for all features
 - Constitution updated before architectural changes
 - Complex features require spec.md and plan.md
+- Research phase MUST consult docs/ folder (PHILOSOPHY.md, quickstart.md, local-development.md) before external sources
 - Architectural decisions MUST consult docs/PHILOSOPHY.md for layer boundaries
 - Changes MUST align with four-layer model (CLI → Templates → Scripts → Constitution)
+- Phase 1 artifacts (data-model.md, contracts/) MUST be conditional based on feature type (not all features need entities/APIs)
 - Templates tested on spec-kit development
 - CLAUDE.md updated with spec-kit-specific practices
 
@@ -181,9 +206,17 @@ readchar, truststore)
 - Layer 4 (Constitution): Gates defined here, philosophy explains implementation
 - Extension patterns MUST follow philosophy guidelines
 
+**Research Sources** (enforced in Phase 0 of /plan):
+- Primary: docs/ folder (PHILOSOPHY.md, quickstart.md, local-development.md, installation.md)
+- Secondary: Project files (CLAUDE.md, README.md, existing specs/)
+- Tertiary: External sources (web search, documentation, best practices)
+- Rationale: Internal docs contain project-specific architecture, design decisions, and
+  context that external sources cannot provide. Consulting them first prevents
+  architectural drift and ensures consistency with established patterns.
+
 **Supersedence**:
 - This constitution supersedes conflicting practices
 - When upstream conflicts with principles, fork diverges with documentation
 - Principles guide all architectural and implementation decisions
 
-**Version**: 1.0.2 | **Ratified**: 2025-10-05 | **Last Amended**: 2025-10-05
+**Version**: 1.1.0 | **Ratified**: 2025-10-05 | **Last Amended**: 2025-10-05
