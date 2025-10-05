@@ -197,32 +197,23 @@ def download_template_from_github(...):
 
 ## File Structure
 
+**Dual Structure**: SOURCE (edit for distribution) + INSTALLED (frozen for dogfooding). See [Dogfooding](#dogfooding) section.
+
 ```
-.
-├── src/specify_cli/
-│   └── __init__.py           # Entire CLI implementation (1013 lines)
-├── scripts/bash/             # Feature and agent management scripts
-│   ├── create-new-feature.sh # Creates specs/###-feature-name/
-│   ├── update-agent-context.sh # Updates CLAUDE.md with project info
-│   ├── common.sh             # Shared utility functions
-│   ├── setup-plan.sh         # Sets up plan.md structure
-│   └── check-prerequisites.sh # Tool validation
-├── templates/                # Markdown templates for specs/plans/tasks
-│   ├── spec-template.md
-│   ├── plan-template.md
-│   ├── tasks-template.md
-│   └── agent-file-template.md
-├── memory/                   # Project-wide memory (constitution)
-│   └── constitution.md
-├── .github/workflows/
-│   ├── release.yml           # Auto-release on template changes
-│   └── scripts/              # Release automation scripts
-│       ├── create-release-packages.sh  # Creates zip files
-│       ├── create-github-release.sh
-│       └── get-next-version.sh
-├── pyproject.toml            # Package config, version, dependencies
-├── CHANGELOG.md              # Version history (required updates)
-└── CLAUDE.md                 # This file
+# SOURCE - Edit these to change what users receive
+├── src/specify_cli/__init__.py        # CLI implementation
+├── scripts/bash/*.sh                  # Packaged → .specify/scripts/bash/
+├── templates/*.md                     # Packaged → .specify/templates/
+├── templates/commands/*.md            # Packaged → .claude/commands/
+├── memory/constitution.md             # Packaged → .specify/memory/
+├── .github/workflows/                 # Release automation
+├── pyproject.toml                     # Version, dependencies
+└── CLAUDE.md                          # This file
+
+# INSTALLED - Frozen snapshot (do NOT sync with source during development)
+├── .specify/                          # Installed templates, scripts, constitution
+├── .claude/                           # Installed slash commands
+└── specs/###-feature-name/            # Features developed using dogfooding
 ```
 
 ## Testing After Changes
@@ -310,8 +301,15 @@ When pulling changes from `github/spec-kit`:
 
 ## Dogfooding
 
-This project uses spec-kit to develop spec-kit itself:
-- Constitution at `.specify/memory/constitution.md`
-- Features should go in `specs/###-feature-name/`
-- Use slash commands: `/constitution`, `/specify`, `/plan`, `/tasks`, `/implement`
-- Follow the same workflow we provide to users
+**Dual File Structure**: Spec-kit uses itself for development, creating two distinct file sets:
+
+1. **SOURCE** (`templates/`, `memory/`, `scripts/`) - Edit these to change what users receive
+2. **INSTALLED** (`.specify/`, `.claude/`) - Frozen snapshot from past install, used via `/specify`, `/plan`, etc.
+
+**Critical Rules**:
+- `.specify/` and `.claude/` are **frozen** - do NOT sync or update them when editing source
+- To change distribution: Edit `memory/constitution.md`, `templates/`, `scripts/`
+- To use spec-kit: Run `/constitution`, `/specify`, `/plan` (uses frozen `.specify/`, `.claude/`)
+- Editing `templates/commands/plan.md` does NOT affect `/plan` command (uses `.claude/commands/plan.md`)
+
+**Architecture Changes**: Consult `docs/PHILOSOPHY.md` for layer boundaries and extension patterns
