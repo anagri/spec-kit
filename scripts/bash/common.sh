@@ -3,13 +3,27 @@
 
 # Get repository root, with fallback for non-git repositories
 get_repo_root() {
-    if git rev-parse --show-toplevel >/dev/null 2>&1; then
-        git rev-parse --show-toplevel
-    else
-        # Fall back to script location for non-git repos
-        local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        (cd "$script_dir/../../.." && pwd)
-    fi
+    local dir="$(pwd)"
+
+    # Traverse upward with .specify priority
+    while [ "$dir" != "/" ]; do
+        # FIRST: Check for .specify
+        if [ -d "$dir/.specify" ]; then
+            echo "$dir"
+            return 0
+        fi
+        # SECOND: Check for .git
+        if [ -d "$dir/.git" ]; then
+            echo "$dir"
+            return 0
+        fi
+        # Move up if neither found
+        dir="$(dirname "$dir")"
+    done
+
+    # Final fallback if no markers found
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    (cd "$script_dir/../../.." && pwd)
 }
 
 # Get current feature identifier (no git branch dependency)

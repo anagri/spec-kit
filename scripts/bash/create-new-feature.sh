@@ -22,7 +22,13 @@ fi
 find_repo_root() {
     local dir="$1"
     while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ] || [ -d "$dir/.specify" ]; then
+        # FIRST: Check for .specify
+        if [ -d "$dir/.specify" ]; then
+            echo "$dir"
+            return 0
+        fi
+        # SECOND: Check for .git
+        if [ -d "$dir/.git" ]; then
             echo "$dir"
             return 0
         fi
@@ -36,15 +42,17 @@ find_repo_root() {
 # were initialised with --no-git.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Try find_repo_root first (supports .specify priority)
+REPO_ROOT="$(find_repo_root "$SCRIPT_DIR")"
+if [ $? -ne 0 ] || [ -z "$REPO_ROOT" ]; then
+    echo "Error: Could not determine repository root. Please run this script from within the repository." >&2
+    exit 1
+fi
+
+# Determine if we have git (separate check)
 if git rev-parse --show-toplevel >/dev/null 2>&1; then
-    REPO_ROOT=$(git rev-parse --show-toplevel)
     HAS_GIT=true
 else
-    REPO_ROOT="$(find_repo_root "$SCRIPT_DIR")"
-    if [ -z "$REPO_ROOT" ]; then
-        echo "Error: Could not determine repository root. Please run this script from within the repository." >&2
-        exit 1
-    fi
     HAS_GIT=false
 fi
 

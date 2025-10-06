@@ -145,6 +145,26 @@ speclaude init test-project --ignore-agent-tools
 
 ### Critical Implementation Details
 
+**Repository Root Detection Priority** (scripts/bash/common.sh:5-13, create-new-feature.sh:22-32):
+```bash
+# NEW: .specify folder has priority over .git for monorepo support
+# Traverses upward checking .specify first, then .git, then fallback
+
+get_repo_root() {
+    local dir="$(pwd)"
+    while [ "$dir" != "/" ]; do
+        if [ -d "$dir/.specify" ]; then echo "$dir"; return 0; fi  # Priority 1
+        if [ -d "$dir/.git" ]; then echo "$dir"; return 0; fi      # Priority 2
+        dir="$(dirname "$dir")"
+    done
+    # Fallback to script location
+}
+```
+**Why**: Enables multiple independent spec-kit projects in a single git repository (monorepo workflow).
+**Git Boundary**: Stops at first marker found - if `.git` is encountered first, doesn't continue to parent `.specify`.
+**Backward Compatible**: Single-project repos work exactly as before.
+See `specs/002-git-folder-priority/quickstart.md` for monorepo setup examples.
+
 **Git Branch Removal** (scripts/bash/create-new-feature.sh:74):
 ```bash
 # Feature directory (no branch creation - solo dev workflow)
