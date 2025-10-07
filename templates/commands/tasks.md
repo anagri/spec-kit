@@ -1,7 +1,5 @@
 ---
 description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
-scripts:
-  sh: scripts/bash/check-prerequisites.sh --json
 ---
 
 The user input to you can be provided directly by the agent or as a command argument - you **MUST** consider it before proceeding with the prompt (if not empty).
@@ -10,7 +8,7 @@ User input:
 
 $ARGUMENTS
 
-1. Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute.
+1. Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute.
 2. Load and analyze available design documents:
    - Always read plan.md for tech stack and libraries
    - IF EXISTS: Read data-model.md for entities
@@ -24,7 +22,7 @@ $ARGUMENTS
    - Generate tasks based on what's available
 
 3. Generate tasks following the template:
-   - Use `/templates/tasks-template.md` as the base
+   - Use `.specify/templates/tasks-template.md` as the base
    - Replace example tasks with actual tasks based on:
      * **Setup tasks**: Project init, dependencies, linting
      * **Test tasks [P]**: One per contract, one per integration scenario
@@ -59,6 +57,6 @@ $ARGUMENTS
    - Dependency notes
    - Parallel execution guidance
 
-Context for task generation: {ARGS}
+Context for task generation: $ARGUMENTS
 
 The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.

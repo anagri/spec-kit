@@ -180,16 +180,34 @@ def download_template_from_github(...):
     repo_name = "spec-kit"
 ```
 
+**Template Pre-processing** (one-time operation, completed):
+```bash
+# Templates were PRE-PROCESSED once for Claude Code + bash only
+# Transformations applied:
+# 1. Stripped YAML frontmatter to simple description-only format
+# 2. Replaced {SCRIPT} with sh: variant from frontmatter
+# 3. Replaced {ARGS} with $ARGUMENTS
+# 4. Replaced __AGENT__ with claude
+# 5. Rewrote paths: /memory/ → .specify/memory/, etc.
+# 6. Skipped leading blank lines after frontmatter
+
+# Script was: .github/workflows/scripts/preprocess-templates-claude-bash.sh
+# (removed after one-time use - templates now stored in final form)
+```
+**Why Pre-process**: Simplifies release workflow and ensures `--local` flag produces identical output to GitHub releases. Templates are stored in their final processed form in the repository. The preprocessing script was run once and removed since templates are now in their final state.
+
 **Template Copy Logic** (.github/workflows/scripts/create-release-packages.sh):
 ```bash
-# MUST match upstream exactly - uses GNU cp --parents
-[[ -d templates ]] && {
-  mkdir -p "$SPEC_DIR/templates";
-  find templates -type f -not -path "templates/commands/*" -exec cp --parents {} "$SPEC_DIR"/ \; ;
-  echo "Copied templates -> .specify/templates";
-}
+# SIMPLIFIED: Templates are already pre-processed, just copy as-is
+if [[ -d templates ]]; then
+  find templates -maxdepth 1 -type f -name "*.md" -exec cp {} "$SPEC_DIR/templates/" \;
+fi
+
+if [[ -d templates/commands ]]; then
+  cp templates/commands/*.md "$CLAUDE_DIR/commands/" 2>/dev/null || true
+fi
 ```
-**Do not rewrite this logic** - it must stay aligned with upstream.
+**Note**: Templates are now stored pre-processed in the repository. If you need to add new command templates, they should be created in their final form (following the pattern in existing `templates/commands/*.md` files).
 
 **Constitution-Driven Development**:
 - All architectural decisions must align with `.specify/memory/constitution.md`

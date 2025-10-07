@@ -799,7 +799,10 @@ def copy_local_templates(
     tracker: Optional[StepTracker] = None,
 ) -> None:
     """
-    Copy templates from local repository to project directory.
+    Copy PRE-PROCESSED templates from local repository to project directory.
+
+    Templates are already processed for Claude Code + bash during preprocessing,
+    so we just copy them as-is without any transformations.
 
     Args:
         project_path: Target project directory
@@ -817,9 +820,9 @@ def copy_local_templates(
     try:
         file_count = 0
 
-        # Path mapping according to template-contracts.md:
+        # Path mapping (templates are pre-processed, copy as-is):
         # templates/*.md (exclude commands/) → .specify/templates/
-        # templates/commands/ → .claude/commands/
+        # templates/commands/*.md → .claude/commands/
         # scripts/bash/ → .specify/scripts/bash/
         # memory/ → .specify/memory/
 
@@ -828,10 +831,9 @@ def copy_local_templates(
         templates_dst = project_path / ".specify" / "templates"
         templates_dst.mkdir(parents=True, exist_ok=True)
 
-        for item in templates_src.iterdir():
-            if item.is_file() and item.suffix == ".md":
-                shutil.copy2(item, templates_dst / item.name, follow_symlinks=True)
-                file_count += 1
+        for item in templates_src.glob("*.md"):
+            shutil.copy2(item, templates_dst / item.name)
+            file_count += 1
 
         # 2. Copy templates/commands/ to .claude/commands/
         commands_src = local_path / "templates" / "commands"
@@ -844,9 +846,7 @@ def copy_local_templates(
                 dirs_exist_ok=True,  # Merge with existing (for --here mode)
             )
             # Count files in commands
-            for item in commands_dst.rglob("*"):
-                if item.is_file():
-                    file_count += 1
+            file_count += sum(1 for f in commands_dst.rglob("*.md") if f.is_file())
 
         # 3. Copy scripts/bash/ to .specify/scripts/bash/
         scripts_src = local_path / "scripts" / "bash"
@@ -859,9 +859,7 @@ def copy_local_templates(
                 dirs_exist_ok=True,
             )
             # Count files in scripts
-            for item in scripts_dst.rglob("*"):
-                if item.is_file():
-                    file_count += 1
+            file_count += sum(1 for f in scripts_dst.rglob("*.sh") if f.is_file())
 
         # 4. Copy memory/ to .specify/memory/
         memory_src = local_path / "memory"
@@ -874,9 +872,7 @@ def copy_local_templates(
                 dirs_exist_ok=True,
             )
             # Count files in memory
-            for item in memory_dst.rglob("*"):
-                if item.is_file():
-                    file_count += 1
+            file_count += sum(1 for f in memory_dst.rglob("*") if f.is_file())
 
         if tracker:
             tracker.complete("copy", f"{file_count} files")
