@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for using `.` as a shorthand for current directory in `specify init .` command, equivalent to `--here` flag but more intuitive for users
 
+## [0.1.0] - 2025-10-07
+
+### Added
+
+- `--local <path>` flag for `init` command to support local template development workflow
+- Local repository validation requiring `templates/`, `templates/commands/`, `scripts/bash/`, and `memory/` directories
+- Path mapping from repository structure to installed structure during local copy
+- Symlink dereferencing during local template copy (copies target content, not symlinks)
+- Rich Panel error messages for invalid paths, missing directories, and incomplete repository structures
+- Progress tracker integration showing "Validate local repository" and "Copy templates from local" steps
+- Full compatibility with existing flags: `--here`, `--no-git`, `--force`, `--ignore-agent-tools`
+
 ## [0.0.17] - 2025-09-22
 
 ### Added

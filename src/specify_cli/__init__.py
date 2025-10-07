@@ -736,6 +736,157 @@ def ensure_executable_scripts(project_path: Path, tracker: StepTracker | None = 
             for f in failures:
                 console.print(f"  - {f}")
 
+
+def validate_local_repo(local_path: Path) -> Tuple[bool, Optional[str]]:
+    """
+    Validate that a local path contains required spec-kit repository structure.
+
+    Args:
+        local_path: Resolved absolute Path object to validate
+
+    Returns:
+        (is_valid, error_message): (True, None) if valid, (False, error_msg) if invalid
+    """
+    required_dirs = {
+        "templates": local_path / "templates",
+        "templates/commands": local_path / "templates" / "commands",
+        "scripts/bash": local_path / "scripts" / "bash",
+        "memory": local_path / "memory",
+    }
+
+    missing = []
+    found = []
+
+    for label, dir_path in required_dirs.items():
+        if dir_path.exists() and dir_path.is_dir():
+            found.append(label)
+        else:
+            missing.append(label)
+
+    if missing:
+        # Build formatted error message
+        error_lines = ["Invalid spec-kit repository structure", ""]
+        error_lines.append("Missing required directories:")
+        for m in missing:
+            error_lines.append(f"  ✗ {m}/")
+
+        if found:
+            error_lines.append("")
+            error_lines.append("Found:")
+            for f in found:
+                error_lines.append(f"  ✓ {f}/")
+
+        error_lines.extend([
+            "",
+            "Required structure:",
+            "  templates/",
+            "  templates/commands/",
+            "  scripts/bash/",
+            "  memory/",
+            "",
+            "Ensure you're pointing to the root of a spec-kit repository."
+        ])
+
+        return False, "\n".join(error_lines)
+
+    return True, None
+
+
+def copy_local_templates(
+    project_path: Path,
+    local_path: Path,
+    is_current_dir: bool,
+    tracker: Optional[StepTracker] = None,
+) -> None:
+    """
+    Copy templates from local repository to project directory.
+
+    Args:
+        project_path: Target project directory
+        local_path: Source spec-kit repository path
+        is_current_dir: True if using --here flag
+        tracker: Optional progress tracker
+
+    Raises:
+        OSError, PermissionError on copy failure
+    """
+    if tracker:
+        tracker.add("copy", "Copy templates from local")
+        tracker.start("copy")
+
+    try:
+        file_count = 0
+
+        # Path mapping according to template-contracts.md:
+        # templates/*.md (exclude commands/) → .specify/templates/
+        # templates/commands/ → .claude/commands/
+        # scripts/bash/ → .specify/scripts/bash/
+        # memory/ → .specify/memory/
+
+        # 1. Copy templates/*.md (excluding commands/) to .specify/templates/
+        templates_src = local_path / "templates"
+        templates_dst = project_path / ".specify" / "templates"
+        templates_dst.mkdir(parents=True, exist_ok=True)
+
+        for item in templates_src.iterdir():
+            if item.is_file() and item.suffix == ".md":
+                shutil.copy2(item, templates_dst / item.name, follow_symlinks=True)
+                file_count += 1
+
+        # 2. Copy templates/commands/ to .claude/commands/
+        commands_src = local_path / "templates" / "commands"
+        commands_dst = project_path / ".claude" / "commands"
+        if commands_src.exists():
+            shutil.copytree(
+                commands_src,
+                commands_dst,
+                symlinks=False,  # Follow symlinks (dereference)
+                dirs_exist_ok=True,  # Merge with existing (for --here mode)
+            )
+            # Count files in commands
+            for item in commands_dst.rglob("*"):
+                if item.is_file():
+                    file_count += 1
+
+        # 3. Copy scripts/bash/ to .specify/scripts/bash/
+        scripts_src = local_path / "scripts" / "bash"
+        scripts_dst = project_path / ".specify" / "scripts" / "bash"
+        if scripts_src.exists():
+            shutil.copytree(
+                scripts_src,
+                scripts_dst,
+                symlinks=False,
+                dirs_exist_ok=True,
+            )
+            # Count files in scripts
+            for item in scripts_dst.rglob("*"):
+                if item.is_file():
+                    file_count += 1
+
+        # 4. Copy memory/ to .specify/memory/
+        memory_src = local_path / "memory"
+        memory_dst = project_path / ".specify" / "memory"
+        if memory_src.exists():
+            shutil.copytree(
+                memory_src,
+                memory_dst,
+                symlinks=False,
+                dirs_exist_ok=True,
+            )
+            # Count files in memory
+            for item in memory_dst.rglob("*"):
+                if item.is_file():
+                    file_count += 1
+
+        if tracker:
+            tracker.complete("copy", f"{file_count} files")
+
+    except (OSError, PermissionError) as e:
+        if tracker:
+            tracker.error("copy", str(e))
+        raise
+
+
 @app.command()
 def init(
     project_name: str = typer.Argument(None, help="Name for your new project directory (optional if using --here, or use '.' for current directory)"),
@@ -746,6 +897,7 @@ def init(
     skip_tls: bool = typer.Option(False, "--skip-tls", help="Skip SSL/TLS verification (not recommended)"),
     debug: bool = typer.Option(False, "--debug", help="Show verbose diagnostic output for network and extraction failures"),
     github_token: str = typer.Option(None, "--github-token", help="GitHub token to use for API requests (or set GH_TOKEN or GITHUB_TOKEN environment variable)"),
+    local: str = typer.Option(None, "--local", help="Path to local spec-kit repository (for template development)"),
 ):
     """
     Initialize a new Specify project for Claude Code.
@@ -874,29 +1026,94 @@ def init(
     tracker.complete("ai-select", "claude")
     tracker.add("script-select", "Script type")
     tracker.complete("script-select", "sh")
-    for key, label in [
-        ("fetch", "Fetch latest release"),
-        ("download", "Download template"),
-        ("extract", "Extract template"),
-        ("zip-list", "Archive contents"),
-        ("extracted-summary", "Extraction summary"),
-        ("chmod", "Ensure scripts executable"),
-        ("cleanup", "Cleanup"),
-        ("git", "Initialize git repository"),
-        ("final", "Finalize")
-    ]:
-        tracker.add(key, label)
+
+    # Add steps based on mode (local vs GitHub)
+    if local:
+        for key, label in [
+            ("validate", "Validate local repository"),
+            ("copy", "Copy templates from local"),
+            ("chmod", "Ensure scripts executable"),
+            ("git", "Initialize git repository"),
+            ("final", "Finalize")
+        ]:
+            tracker.add(key, label)
+    else:
+        for key, label in [
+            ("fetch", "Fetch latest release"),
+            ("download", "Download template"),
+            ("extract", "Extract template"),
+            ("zip-list", "Archive contents"),
+            ("extracted-summary", "Extraction summary"),
+            ("chmod", "Ensure scripts executable"),
+            ("cleanup", "Cleanup"),
+            ("git", "Initialize git repository"),
+            ("final", "Finalize")
+        ]:
+            tracker.add(key, label)
 
     # Use transient so live tree is replaced by the final static render (avoids duplicate output)
     with Live(tracker.render(), console=console, refresh_per_second=8, transient=True) as live:
         tracker.attach_refresh(lambda: live.update(tracker.render()))
         try:
-            # Create a httpx client with verify based on skip_tls
-            verify = not skip_tls
-            local_ssl_context = ssl_context if verify else False
-            local_client = httpx.Client(verify=local_ssl_context)
+            if local:
+                # LOCAL MODE: Validate and copy from local repository
+                local_path = Path(local).resolve()
 
-            download_and_extract_template(project_path, selected_ai, SCRIPT_TYPE, here, verbose=False, tracker=tracker, client=local_client, debug=debug, github_token=github_token)
+                # Validate path exists
+                if not local_path.exists():
+                    error_panel = Panel(
+                        f"Local path '[cyan]{local}[/cyan]' does not exist\n\n"
+                        "Provide a valid path to a spec-kit repository.",
+                        title="[red]Invalid Local Path[/red]",
+                        border_style="red",
+                        padding=(1, 2)
+                    )
+                    console.print()
+                    console.print(error_panel)
+                    raise typer.Exit(1)
+
+                # Validate path is directory
+                if not local_path.is_dir():
+                    error_panel = Panel(
+                        f"Local path '[cyan]{local}[/cyan]' is not a directory\n\n"
+                        "The --local flag requires a directory containing a spec-kit repository.",
+                        title="[red]Invalid Local Path[/red]",
+                        border_style="red",
+                        padding=(1, 2)
+                    )
+                    console.print()
+                    console.print(error_panel)
+                    raise typer.Exit(1)
+
+                # Validate repository structure
+                tracker.start("validate")
+                is_valid, error_msg = validate_local_repo(local_path)
+                if not is_valid:
+                    tracker.error("validate", "missing directories")
+                    # Stop live rendering to show error panel
+                    live.stop()
+                    console.print()
+                    error_panel = Panel(
+                        error_msg,
+                        title="[red]Invalid Repository Structure[/red]",
+                        border_style="red",
+                        padding=(1, 2)
+                    )
+                    console.print(error_panel)
+                    raise typer.Exit(1)
+
+                tracker.complete("validate", "3 directories found")
+
+                # Copy templates from local repository
+                copy_local_templates(project_path, local_path, here, tracker)
+            else:
+                # GITHUB MODE: Download and extract template
+                # Create a httpx client with verify based on skip_tls
+                verify = not skip_tls
+                local_ssl_context = ssl_context if verify else False
+                local_client = httpx.Client(verify=local_ssl_context)
+
+                download_and_extract_template(project_path, selected_ai, SCRIPT_TYPE, here, verbose=False, tracker=tracker, client=local_client, debug=debug, github_token=github_token)
 
             # Ensure scripts are executable (POSIX)
             ensure_executable_scripts(project_path, tracker=tracker)

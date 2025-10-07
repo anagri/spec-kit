@@ -46,18 +46,18 @@
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
 ### CLI Parameter Parsing Tests
-- [ ] **T001** [P] Contract test: `--local` flag accepts path argument in `tests/contract/test_local_flag_parsing.py`
+- [x] **T001** [P] Contract test: `--local` flag accepts path argument in `tests/contract/test_local_flag_parsing.py`
   - Assert `--local /path` stores path value
   - Assert `--local ../relative` resolves relative path
   - Assert `--local` without argument raises error
 
 ### Path Validation Tests
-- [ ] **T002** [P] Contract test: Path existence validation in `tests/contract/test_path_validation.py`
+- [x] **T002** [P] Contract test: Path existence validation in `tests/contract/test_path_validation.py`
   - Assert nonexistent path raises error with message "Local path '...' does not exist"
   - Assert file path (not directory) raises error "is not a directory"
   - Assert valid directory path passes
 
-- [ ] **T003** [P] Contract test: Repository structure validation in `tests/contract/test_repo_structure.py`
+- [x] **T003** [P] Contract test: Repository structure validation in `tests/contract/test_repo_structure.py`
   - Assert missing `templates/` raises error listing missing directories
   - Assert missing `scripts/bash/` raises error
   - Assert missing `memory/` raises error
@@ -65,41 +65,41 @@
   - Assert all present returns (True, None)
 
 ### File Copy Behavior Tests
-- [ ] **T004** [P] Contract test: Directory mapping in `tests/contract/test_directory_mapping.py`
+- [x] **T004** [P] Contract test: Directory mapping in `tests/contract/test_directory_mapping.py`
   - Assert `templates/*.md` → `.specify/templates/*.md` (excluding commands/)
   - Assert `templates/commands/` → `.claude/commands/`
   - Assert `scripts/bash/` → `.specify/scripts/bash/`
   - Assert `memory/` → `.specify/memory/`
 
-- [ ] **T005** [P] Contract test: Recursive copy in `tests/contract/test_recursive_copy.py`
+- [x] **T005** [P] Contract test: Recursive copy in `tests/contract/test_recursive_copy.py`
   - Create nested structure: `scripts/bash/utils/helper.sh`
   - Assert subdirectories preserved: `.specify/scripts/bash/utils/helper.sh` exists
   - Assert file content identical
 
-- [ ] **T006** [P] Contract test: Symlink dereferencing in `tests/contract/test_symlink_handling.py`
+- [x] **T006** [P] Contract test: Symlink dereferencing in `tests/contract/test_symlink_handling.py`
   - Create symlink: `templates/link.md` → `real.md`
   - Assert copied file is regular file (not symlink)
   - Assert content matches symlink target
 
-- [ ] **T007** [P] Contract test: Executable permissions in `tests/contract/test_script_permissions.py`
+- [x] **T007** [P] Contract test: Executable permissions in `tests/contract/test_script_permissions.py`
   - Copy `scripts/bash/test.sh`
   - Assert `.specify/scripts/bash/test.sh` has executable permission (+x)
   - Assert applied recursively to subdirectories
 
 ### Error Handling Tests
-- [ ] **T008** [P] Contract test: Path not exist error in `tests/contract/test_error_path_not_exist.py`
+- [x] **T008** [P] Contract test: Path not exist error in `tests/contract/test_error_path_not_exist.py`
   - Run `init --local /nonexistent`
   - Assert error message: "Local path '/nonexistent' does not exist"
   - Assert Rich Panel format
   - Assert exit code 1
 
-- [ ] **T009** [P] Contract test: Path not directory error in `tests/contract/test_error_not_directory.py`
+- [x] **T009** [P] Contract test: Path not directory error in `tests/contract/test_error_not_directory.py`
   - Create file `/tmp/file.txt`
   - Run `init --local /tmp/file.txt`
   - Assert error message: "is not a directory"
   - Assert exit code 1
 
-- [ ] **T010** [P] Contract test: Incomplete repo error in `tests/contract/test_error_incomplete_repo.py`
+- [x] **T010** [P] Contract test: Incomplete repo error in `tests/contract/test_error_incomplete_repo.py`
   - Create repo with only `templates/` directory
   - Run `init --local <path>`
   - Assert error lists "Missing required directories"
@@ -107,17 +107,17 @@
   - Assert exit code 1
 
 ### Integration Tests (Flag Combinations)
-- [ ] **T011** [P] Contract test: `--local` with `--here` in `tests/contract/test_local_here_combination.py`
+- [x] **T011** [P] Contract test: `--local` with `--here` in `tests/contract/test_local_here_combination.py`
   - Run `init --here --local <path>` in existing directory
   - Assert `.specify/` and `.claude/` created in current directory
   - Assert no subdirectory created
 
-- [ ] **T012** [P] Contract test: `--local` with `--no-git` in `tests/contract/test_local_nogit_combination.py`
+- [x] **T012** [P] Contract test: `--local` with `--no-git` in `tests/contract/test_local_nogit_combination.py`
   - Run `init test --local <path> --no-git`
   - Assert templates copied
   - Assert no `.git/` directory created
 
-- [ ] **T013** [P] Contract test: `--local` with `--force` in `tests/contract/test_local_force_combination.py`
+- [x] **T013** [P] Contract test: `--local` with `--force` in `tests/contract/test_local_force_combination.py`
   - Create project directory manually
   - Run `init test --local <path> --force`
   - Assert no confirmation prompt
@@ -128,28 +128,28 @@
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
 ### Function Implementations
-- [ ] **T014** [P] Implement `validate_local_repo()` in `src/specify_cli/__init__.py`
+- [x] **T014** [P] Implement `validate_local_repo()` in `src/specify_cli/__init__.py`
   - Input: Resolved absolute Path object
   - Output: (is_valid: bool, error_message: Optional[str])
   - Validation: Check `templates/`, `scripts/bash/`, `memory/`, `templates/commands/` exist
   - Error format: Rich Panel with missing vs. found directories
   - Make tests T002, T003, T010 pass
 
-- [ ] **T015** [P] Implement `copy_local_templates()` in `src/specify_cli/__init__.py`
+- [x] **T015** [P] Implement `copy_local_templates()` in `src/specify_cli/__init__.py`
   - Input: project_path, local_path, is_current_dir, tracker
   - Behavior: Copy with path mapping per template-contracts.md
   - Use `shutil.copytree(symlinks=False, dirs_exist_ok=True)`
   - Update tracker: add("copy", "Copy templates from local"), start(), complete()
   - Make tests T004, T005, T006 pass
 
-- [ ] **T016** Add `local` parameter to `init()` signature in `src/specify_cli/__init__.py`
+- [x] **T016** Add `local` parameter to `init()` signature in `src/specify_cli/__init__.py`
   - Add parameter: `local: Optional[str] = None`
   - Add Typer option: `@click.option("--local", type=str, help="...")`
   - No implementation yet - just signature change
   - Make test T001 pass
 
 ### CLI Integration
-- [ ] **T017** Integrate local mode branch in `init()` execution flow in `src/specify_cli/__init__.py`
+- [x] **T017** Integrate local mode branch in `init()` execution flow in `src/specify_cli/__init__.py`
   - After argument validation, before GitHub download
   - Branch logic:
     ```python
@@ -173,14 +173,14 @@
 ## Phase 3.4: Integration
 
 ### Progress Tracker Updates
-- [ ] **T018** Update progress tracker for local mode in `src/specify_cli/__init__.py`
+- [x] **T018** Update progress tracker for local mode in `src/specify_cli/__init__.py`
   - Add step labels: "Validate local repository", "Copy templates from local"
   - Update `StepTracker` messages in local mode branch
   - Ensure progress display matches quickstart.md expected output
   - Make integration tests show correct progress messages
 
 ### Error Handling Polish
-- [ ] **T019** Add Rich Panel error formatting for all local mode errors in `src/specify_cli/__init__.py`
+- [x] **T019** Add Rich Panel error formatting for all local mode errors in `src/specify_cli/__init__.py`
   - Path not exist error (FR-013)
   - Path not directory error (FR-013)
   - Invalid repo structure error (from validate_local_repo)
@@ -190,7 +190,7 @@
   - Make test T008, T009, T010 pass with proper formatting
 
 ### Post-Copy Operations
-- [ ] **T020** Ensure `ensure_executable_scripts()` called after local copy in `src/specify_cli/__init__.py`
+- [x] **T020** Ensure `ensure_executable_scripts()` called after local copy in `src/specify_cli/__init__.py`
   - Applies to both local and GitHub mode (shared post-copy logic)
   - Recursively sets +x on all `.sh` files in `.specify/scripts/bash/`
   - Make test T007 pass
@@ -200,30 +200,30 @@
 ## Phase 3.5: Polish & Validation
 
 ### Manual Testing (Sequential - CLI operations)
-- [ ] **T021** Run quickstart.md Scenario 1: Valid local repository (happy path)
+- [x] **T021** Run quickstart.md Scenario 1: Valid local repository (happy path)
   - Test with absolute path: `uvx --from . specify-cli init test-local-absolute --local $(pwd)`
   - Verify all directories created
   - Verify file count matches source
   - Verify no network requests
 
-- [ ] **T022** Run quickstart.md Scenario 2-3: Relative paths and `--here` flag
+- [x] **T022** Run quickstart.md Scenario 2-3: Relative paths and `--here` flag
   - Scenario 2: Test relative path resolution
   - Scenario 3: Test `--here` flag (no subdirectory)
   - Verify behavior matches expectations
 
-- [ ] **T023** Run quickstart.md Scenario 4-5: Error handling
+- [x] **T023** Run quickstart.md Scenario 4-5: Error handling
   - Scenario 4: Invalid path error
   - Scenario 5: Incomplete repository error
   - Verify error messages match template-contracts.md format
 
-- [ ] **T024** Run quickstart.md Scenario 6-9: Edge cases and performance
+- [x] **T024** Run quickstart.md Scenario 6-9: Edge cases and performance
   - Scenario 6: Symlink resolution
   - Scenario 7: Recursive subdirectories
   - Scenario 8: `--no-git` compatibility
   - Scenario 9: Performance check (<2 seconds)
 
 ### Release Preparation
-- [ ] **T025** Version bump and CHANGELOG in `pyproject.toml` and `CHANGELOG.md`
+- [x] **T025** Version bump and CHANGELOG in `pyproject.toml` and `CHANGELOG.md`
   - Bump version: MINOR (e.g., v0.2.0 → v0.3.0) - new feature flag
   - Add CHANGELOG entry:
     ```

@@ -14,6 +14,11 @@ store the specify state in the folder and allow switching of state using command
 
 for this, we can store the states in `.specify` folder as json/yaml
 
+/status
+
+to get you the current status of spec-kit
+
+
 ---
 
 sub-agent based execution of tasks
