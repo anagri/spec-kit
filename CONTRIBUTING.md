@@ -11,7 +11,7 @@ These are one time installations required to be able to test your changes locall
 1. Install [Python 3.11+](https://www.python.org/downloads/)
 1. Install [uv](https://docs.astral.sh/uv/) for package management
 1. Install [Git](https://git-scm.com/downloads)
-1. Have an [AI coding agent available](README.md#-supported-ai-agents)
+1. Install [Claude Code](https://www.anthropic.com/claude-code) (this fork only supports Claude Code)
 
 ## Submitting a pull request
 
@@ -40,10 +40,12 @@ Here are a few things you can do that will increase the likelihood of your pull 
 
 When working on spec-kit:
 
-1. Test changes with the `specify` CLI commands (`/specify`, `/plan`, `/tasks`) in your coding agent of choice
+1. Test changes with the `speclaude` CLI commands (`/specify`, `/plan`, `/tasks`) in Claude Code
 2. Verify templates are working correctly in `templates/` directory
-3. Test script functionality in the `scripts/` directory
+3. Test bash script functionality in the `scripts/bash/` directory
 4. Ensure memory files (`memory/constitution.md`) are updated if major process changes are made
+
+**Note**: This fork only supports Claude Code with bash scripts. For multi-agent support, see [github/spec-kit](https://github.com/github/spec-kit).
 
 ## AI contributions in Spec Kit
 

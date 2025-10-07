@@ -119,22 +119,16 @@ Want to see Spec Kit in action? Watch our [video overview](https://www.youtube.c
 
 [![Spec Kit video header](/media/spec-kit-video-header.jpg)](https://www.youtube.com/watch?v=a9eR1xsfvHg&pp=0gcJCckJAYcqIYzv)
 
-## 🤖 Supported AI Agents
+## 🤖 About This Fork
 
-| Agent                                                     | Support | Notes                                             |
-|-----------------------------------------------------------|---------|---------------------------------------------------|
-| [Claude Code](https://www.anthropic.com/claude-code)      | ✅ |                                                   |
-| [GitHub Copilot](https://code.visualstudio.com/)          | ✅ |                                                   |
-| [Gemini CLI](https://github.com/google-gemini/gemini-cli) | ✅ |                                                   |
-| [Cursor](https://cursor.sh/)                              | ✅ |                                                   |
-| [Qwen Code](https://github.com/QwenLM/qwen-code)          | ✅ |                                                   |
-| [opencode](https://opencode.ai/)                          | ✅ |                                                   |
-| [Windsurf](https://windsurf.com/)                         | ✅ |                                                   |
-| [Kilo Code](https://github.com/Kilo-Org/kilocode)         | ✅ |                                                   |
-| [Auggie CLI](https://docs.augmentcode.com/cli/overview)   | ✅ |                                                   |
-| [Roo Code](https://roocode.com/)                          | ✅ |                                                   |
-| [Amazon Q Developer CLI](https://aws.amazon.com/developer/learning/q-developer-cli/) | ⚠️ | Amazon Q Developer CLI [does not support](https://github.com/aws/amazon-q-developer-cli/issues/3064) custom arguments for slash commands. |
-| [Codex CLI](https://github.com/openai/codex)              | ⚠️ | Codex [does not support](https://github.com/openai/codex/issues/2890) custom arguments for slash commands.  |
+This is `anagri/spec-kit`, a **Claude Code-only, bash-only fork** optimized for solo developers on Unix-like systems (macOS, Linux, WSL). Key differences from upstream:
+
+- **Claude Code only**: Single AI assistant, no multi-agent complexity
+- **Bash only**: No PowerShell dual implementation
+- **Solo developer workflow**: No mandatory git branch creation
+- **Unix-focused**: macOS and Linux (Windows users can use WSL/Git Bash)
+
+For multi-agent support, see the upstream repository at [github/spec-kit](https://github.com/github/spec-kit).
 
 ## 🔧 Specify CLI Reference
 
@@ -144,63 +138,53 @@ The `specify` command supports the following options:
 
 | Command     | Description                                                    |
 |-------------|----------------------------------------------------------------|
-| `init`      | Initialize a new Specify project from the latest template      |
-| `check`     | Check for installed tools (`git`, `claude`, `gemini`, `code`/`code-insiders`, `cursor-agent`, `windsurf`, `qwen`, `opencode`, `codex`) |
+| `init`      | Initialize a new Specify project with Claude Code + bash templates |
+| `check`     | Check for installed tools (`git`, `claude`)                    |
 
-### `specify init` Arguments & Options
+### `speclaude init` Arguments & Options
 
 | Argument/Option        | Type     | Description                                                                  |
 |------------------------|----------|------------------------------------------------------------------------------|
 | `<project-name>`       | Argument | Name for your new project directory (optional if using `--here`, or use `.` for current directory) |
-| `--ai`                 | Option   | AI assistant to use: `claude`, `gemini`, `copilot`, `cursor`, `qwen`, `opencode`, `codex`, `windsurf`, `kilocode`, `auggie`, `roo`, or `q` |
-| `--script`             | Option   | Script variant to use: `sh` (bash/zsh) or `ps` (PowerShell)                 |
-| `--ignore-agent-tools` | Flag     | Skip checks for AI agent tools like Claude Code                             |
+| `--ignore-agent-tools` | Flag     | Skip checks for Claude Code CLI                                             |
 | `--no-git`             | Flag     | Skip git repository initialization                                          |
 | `--here`               | Flag     | Initialize project in the current directory instead of creating a new one   |
 | `--force`              | Flag     | Force merge/overwrite when initializing in current directory (skip confirmation) |
 | `--skip-tls`           | Flag     | Skip SSL/TLS verification (not recommended)                                 |
 | `--debug`              | Flag     | Enable detailed debug output for troubleshooting                            |
 | `--github-token`       | Option   | GitHub token for API requests (or set GH_TOKEN/GITHUB_TOKEN env variable)  |
+| `--local`              | Option   | Path to local spec-kit repository (for template development)               |
 
 ### Examples
 
 ```bash
-# Basic project initialization
-specify init my-project
-
-# Initialize with specific AI assistant
-specify init my-project --ai claude
-
-# Initialize with Cursor support
-specify init my-project --ai cursor
-
-# Initialize with Windsurf support
-specify init my-project --ai windsurf
-
-# Initialize with PowerShell scripts (Windows/cross-platform)
-specify init my-project --ai copilot --script ps
+# Basic project initialization (Claude Code + bash)
+speclaude init my-project
 
 # Initialize in current directory
-specify init . --ai copilot
+speclaude init .
 # or use the --here flag
-specify init --here --ai copilot
+speclaude init --here
 
 # Force merge into current (non-empty) directory without confirmation
-specify init . --force --ai copilot
-# or 
-specify init --here --force --ai copilot
+speclaude init . --force
+# or
+speclaude init --here --force
 
 # Skip git initialization
-specify init my-project --ai gemini --no-git
+speclaude init my-project --no-git
 
 # Enable debug output for troubleshooting
-specify init my-project --ai claude --debug
+speclaude init my-project --debug
 
 # Use GitHub token for API requests (helpful for corporate environments)
-specify init my-project --ai claude --github-token ghp_your_token_here
+speclaude init my-project --github-token ghp_your_token_here
+
+# Use local templates for development
+speclaude init my-project --local /path/to/spec-kit
 
 # Check system requirements
-specify check
+speclaude check
 ```
 
 ### Available Slash Commands
@@ -269,12 +253,12 @@ Our research and experimentation focus on:
 ## 🔧 Prerequisites
 
 - **Linux/macOS** (or WSL2 on Windows)
-- AI coding agent: [Claude Code](https://www.anthropic.com/claude-code), [GitHub Copilot](https://code.visualstudio.com/), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Cursor](https://cursor.sh/), [Qwen CLI](https://github.com/QwenLM/qwen-code), [opencode](https://opencode.ai/), [Codex CLI](https://github.com/openai/codex), [Windsurf](https://windsurf.com/), or [Amazon Q Developer CLI](https://aws.amazon.com/developer/learning/q-developer-cli/)
+- [Claude Code](https://www.anthropic.com/claude-code) - AI coding assistant
 - [uv](https://docs.astral.sh/uv/) for package management
 - [Python 3.11+](https://www.python.org/downloads/)
-- [Git](https://git-scm.com/downloads)
+- [Git](https://git-scm.com/downloads) (optional)
 
-If you encounter issues with an agent, please open an issue so we can refine the integration.
+**Note**: This fork only supports Claude Code with bash scripts. For multi-agent support, see [github/spec-kit](https://github.com/github/spec-kit).
 
 ## 📖 Learn more
 
@@ -291,51 +275,27 @@ If you encounter issues with an agent, please open an issue so we can refine the
 You can use the Specify CLI to bootstrap your project, which will bring in the required artifacts in your environment. Run:
 
 ```bash
-specify init <project_name>
+speclaude init <project_name>
 ```
 
 Or initialize in the current directory:
 
 ```bash
-specify init .
+speclaude init .
 # or use the --here flag
-specify init --here
+speclaude init --here
 # Skip confirmation when the directory already has files
-specify init . --force
+speclaude init . --force
 # or
-specify init --here --force
+speclaude init --here --force
 ```
 
 ![Specify CLI bootstrapping a new project in the terminal](./media/specify_cli.gif)
 
-You will be prompted to select the AI agent you are using. You can also proactively specify it directly in the terminal:
+This fork only supports Claude Code with bash scripts. The CLI will check if you have Claude Code CLI installed. If you prefer to get the templates without checking for the tools, use `--ignore-agent-tools`:
 
 ```bash
-specify init <project_name> --ai claude
-specify init <project_name> --ai gemini
-specify init <project_name> --ai copilot
-specify init <project_name> --ai cursor
-specify init <project_name> --ai qwen
-specify init <project_name> --ai opencode
-specify init <project_name> --ai codex
-specify init <project_name> --ai windsurf
-specify init <project_name> --ai q
-# Or in current directory:
-specify init . --ai claude
-specify init . --ai codex
-# or use --here flag
-specify init --here --ai claude
-specify init --here --ai codex
-# Force merge into a non-empty current directory
-specify init . --force --ai claude
-# or
-specify init --here --force --ai claude
-```
-
-The CLI will check if you have Claude Code, Gemini CLI, Cursor CLI, Qwen CLI, opencode, Codex CLI, or Amazon Q Developer CLI installed. If you do not, or you prefer to get the templates without checking for the right tools, use `--ignore-agent-tools` with your command:
-
-```bash
-specify init <project_name> --ai claude --ignore-agent-tools
+speclaude init <project_name> --ignore-agent-tools
 ```
 
 ### **STEP 1:** Establish project principles

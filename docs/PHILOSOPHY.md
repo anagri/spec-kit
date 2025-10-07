@@ -139,8 +139,6 @@ scripts:
   sh: scripts/bash/create-new-feature.sh --json
 ```
 
-**Note**: No `ps:` key for PowerShell. Simplified to single script path.
-
 **2. Execution Flow Pseudocode** (instructions for Claude):
 
 ```markdown
@@ -159,7 +157,7 @@ scripts:
 ## Constitution Check
 - [ ] Claude Code-Only: No multi-agent logic?
 - [ ] Solo Workflow: No branch coupling?
-- [ ] Bash-Only: No PowerShell scripts?
+- [ ] Bash-Only: Unix scripts only?
 ```
 
 **4. Placeholder System**:
@@ -281,7 +279,7 @@ Since features aren't tied to git branches, scripts use `SPECIFY_FEATURE` enviro
 
 - [ ] Claude Code-Only (Principle I): No agent selection logic?
 - [ ] Solo Workflow (Principle II): No branch creation in scripts?
-- [ ] Bash-Only (Principle I): No PowerShell files?
+- [ ] Bash-Only (Principle I): Unix scripts only?
 - [ ] Minimal Divergence (Principle III): Core workflow unchanged?
 ```
 

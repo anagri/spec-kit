@@ -422,16 +422,20 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> bool:
         os.chdir(original_cwd)
 
 
-def download_template_from_github(ai_assistant: str, download_dir: Path, *, script_type: str = "sh", verbose: bool = True, show_progress: bool = True, client: httpx.Client = None, debug: bool = False, github_token: str = None) -> Tuple[Path, dict]:
+def download_template_from_github(download_dir: Path, *, verbose: bool = True, show_progress: bool = True, client: httpx.Client = None, debug: bool = False, github_token: str = None) -> Tuple[Path, dict]:
+    """Download Claude Code + bash template from GitHub releases.
+
+    This fork only supports Claude Code with bash scripts (hardcoded).
+    """
     repo_owner = "anagri"
     repo_name = "spec-kit"
     if client is None:
         client = httpx.Client(verify=ssl_context)
-    
+
     if verbose:
         console.print("[cyan]Fetching latest release information...[/cyan]")
     api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
-    
+
     try:
         response = client.get(
             api_url,
@@ -453,10 +457,10 @@ def download_template_from_github(ai_assistant: str, download_dir: Path, *, scri
         console.print(f"[red]Error fetching release information[/red]")
         console.print(Panel(str(e), title="Fetch Error", border_style="red"))
         raise typer.Exit(1)
-    
-    # Find the template asset for the specified AI assistant
+
+    # Find the template asset (Claude Code + bash only)
     assets = release_data.get("assets", [])
-    pattern = f"spec-kit-template-{ai_assistant}-{script_type}"
+    pattern = f"spec-kit-template-{AI_AGENT}-{SCRIPT_TYPE}"
     matching_assets = [
         asset for asset in assets
         if pattern in asset["name"] and asset["name"].endswith(".zip")
@@ -465,7 +469,7 @@ def download_template_from_github(ai_assistant: str, download_dir: Path, *, scri
     asset = matching_assets[0] if matching_assets else None
 
     if asset is None:
-        console.print(f"[red]No matching release asset found[/red] for [bold]{ai_assistant}[/bold] (expected pattern: [bold]{pattern}[/bold])")
+        console.print(f"[red]No matching release asset found[/red] for [bold]Claude Code + bash[/bold] (expected pattern: [bold]{pattern}[/bold])")
         asset_names = [a.get('name', '?') for a in assets]
         console.print(Panel("\n".join(asset_names) or "(no assets)", title="Available Assets", border_style="yellow"))
         raise typer.Exit(1)
@@ -534,20 +538,20 @@ def download_template_from_github(ai_assistant: str, download_dir: Path, *, scri
     return zip_path, metadata
 
 
-def download_and_extract_template(project_path: Path, ai_assistant: str, script_type: str, is_current_dir: bool = False, *, verbose: bool = True, tracker: StepTracker | None = None, client: httpx.Client = None, debug: bool = False, github_token: str = None) -> Path:
-    """Download the latest release and extract it to create a new project.
-    Returns project_path. Uses tracker if provided (with keys: fetch, download, extract, cleanup)
+def download_and_extract_template(project_path: Path, is_current_dir: bool = False, *, verbose: bool = True, tracker: StepTracker | None = None, client: httpx.Client = None, debug: bool = False, github_token: str = None) -> Path:
+    """Download the latest Claude Code + bash release and extract it to create a new project.
+
+    Returns project_path. Uses tracker if provided (with keys: fetch, download, extract, cleanup).
+    This fork only supports Claude Code with bash scripts (hardcoded).
     """
     current_dir = Path.cwd()
-    
+
     # Step: fetch + download combined
     if tracker:
         tracker.start("fetch", "contacting GitHub API")
     try:
         zip_path, meta = download_template_from_github(
-            ai_assistant,
             current_dir,
-            script_type=script_type,
             verbose=verbose and tracker is None,
             show_progress=(tracker is None),
             client=client,
@@ -896,14 +900,16 @@ def init(
     local: str = typer.Option(None, "--local", help="Path to local spec-kit repository (for template development)"),
 ):
     """
-    Initialize a new Specify project for Claude Code.
+    Initialize a new Specify project for Claude Code with bash scripts.
 
     This command will:
     1. Check that required tools are installed (git is optional)
-    2. Download the Claude Code template from GitHub
+    2. Download the Claude Code + bash template from GitHub
     3. Extract the template to a new project directory or current directory
     4. Initialize a fresh git repository (if not --no-git and no existing repo)
     5. Set up Claude Code slash commands
+
+    This fork only supports Claude Code with bash scripts.
 
     Examples:
         speclaude init my-project
@@ -987,9 +993,6 @@ def init(
         if not should_init_git:
             console.print("[yellow]Git not found - will skip repository initialization[/yellow]")
 
-    # Always use Claude Code
-    selected_ai = AI_AGENT
-    
     # Check for Claude Code CLI unless ignored
     if not ignore_agent_tools:
         if not check_tool("claude", "https://docs.anthropic.com/en/docs/claude-code/setup"):
@@ -1004,9 +1007,6 @@ def init(
             console.print()
             console.print(error_panel)
             raise typer.Exit(1)
-    
-    # Always use bash/sh scripts
-    selected_script = SCRIPT_TYPE
 
     console.print(f"[cyan]Using Claude Code with bash scripts[/cyan]")
     
@@ -1018,10 +1018,6 @@ def init(
     # Pre steps recorded as completed before live rendering
     tracker.add("precheck", "Check required tools")
     tracker.complete("precheck", "ok")
-    tracker.add("ai-select", "AI assistant")
-    tracker.complete("ai-select", "claude")
-    tracker.add("script-select", "Script type")
-    tracker.complete("script-select", "sh")
 
     # Add steps based on mode (local vs GitHub)
     if local:
@@ -1109,7 +1105,7 @@ def init(
                 local_ssl_context = ssl_context if verify else False
                 local_client = httpx.Client(verify=local_ssl_context)
 
-                download_and_extract_template(project_path, selected_ai, SCRIPT_TYPE, here, verbose=False, tracker=tracker, client=local_client, debug=debug, github_token=github_token)
+                download_and_extract_template(project_path, here, verbose=False, tracker=tracker, client=local_client, debug=debug, github_token=github_token)
 
             # Ensure scripts are executable (POSIX)
             ensure_executable_scripts(project_path, tracker=tracker)
