@@ -13,11 +13,22 @@ This is `anagri/spec-kit`, a **Claude Code-only, bash-only, solo-developer fork*
 4. Downloads templates from `anagri/spec-kit` instead of `github/spec-kit`
 
 **Governance & Architecture Documentation**:
-- `.specify/memory/constitution.md` - The six core principles (WHAT)
+- `.specify/memory/constitution.md` - The six core principles (WHAT) - Version 1.1.0
+  - I. Claude Code-Only Support
+  - II. Solo Developer Workflow
+  - III. Minimal Divergence from Upstream
+  - IV. GitHub Release Template Distribution
+  - V. Version Discipline (NON-NEGOTIABLE)
+  - VI. Dogfooding - Self-Application
 - `docs/PHILOSOPHY.md` - Architectural rationale and patterns (WHY & HOW)
 - `CLAUDE.md` (this file) - Developer workflow and implementation (WHEN & WHERE)
 
-> **For AI Assistants**: When making architectural decisions or debugging complex issues, consult `docs/PHILOSOPHY.md` for the four-layer model, design rationale, and extension patterns. The philosophy document explains WHY the architecture is designed this way, not just WHAT it does.
+> **For AI Assistants**:
+> - **First time here?** Read `.specify/memory/constitution.md` first to understand the six governing principles.
+> - **Making architectural decisions?** Consult `docs/PHILOSOPHY.md` for the four-layer model, design rationale, and extension patterns.
+> - **Implementing features?** Use this file (CLAUDE.md) for build commands, testing procedures, and development workflows.
+>
+> The constitution defines WHAT must be followed. The philosophy explains WHY it's designed this way. This file shows WHEN and WHERE to apply them.
 
 ## Build and Development Commands
 
@@ -113,13 +124,55 @@ speclaude init test-project --ignore-agent-tools
 
 **5. Claude Code Slash Commands (`.claude/commands/`)**
    - `/constitution`: Create/update `.specify/memory/constitution.md`
+   - `/clarify-constitution`: Identify and resolve `[NEEDS CLARIFICATION]` markers in constitution (optional)
    - `/specify`: Generate feature spec in `specs/###-feature-name/spec.md`
-   - `/clarify`: Ask clarification questions before planning
+   - `/clarify`: Ask clarification questions before planning (optional but recommended)
    - `/plan`: Create technical implementation plan
    - `/tasks`: Generate task breakdown from plan
-   - `/analyze`: Cross-artifact consistency check
+   - `/analyze`: Cross-artifact consistency check (optional but recommended)
    - `/implement`: Execute tasks from tasks.md
-   - Commands are Markdown files with frontmatter and `$ARGUMENTS` placeholder
+
+   **Command Sequence**:
+   - **Required**: `/constitution` → `/specify` → `/plan` → `/tasks` → `/implement`
+   - **Optional but recommended**: Run `/clarify-constitution` after `/constitution` if markers exist, `/clarify` after `/specify` before `/plan`, `/analyze` after `/tasks` before `/implement`
+
+   Commands are Markdown files with frontmatter and `$ARGUMENTS` placeholder
+
+## Dogfooding - Self-Application
+
+**Critical Context**: Spec-kit uses itself for development, creating two distinct file sets that serve different purposes.
+
+**Dual File Structure**:
+
+1. **SOURCE** (`templates/`, `memory/`, `scripts/`) - Edit these to change what users receive
+2. **INSTALLED** (`.specify/`, `.claude/`) - Frozen snapshot from past install, used via `/specify`, `/plan`, etc.
+
+**Critical Rules**:
+- `.specify/` and `.claude/` are **frozen** - do NOT sync or update them when editing source
+- To change distribution: Edit `memory/constitution.md`, `templates/`, `scripts/`
+- To use spec-kit: Run `/constitution`, `/specify`, `/plan` (uses frozen `.specify/`, `.claude/`)
+- Editing `templates/commands/plan.md` does NOT affect `/plan` command (uses `.claude/commands/plan.md`)
+
+**Architecture Changes**: When making significant changes, consult:
+- `.specify/memory/constitution.md` for runtime governance principles
+- `docs/PHILOSOPHY.md` for layer boundaries and extension patterns
+- `CLAUDE.md` (this file) for implementation details
+
+**Example Workflow**:
+```bash
+# Developing a new feature for spec-kit itself
+cd /path/to/spec-kit
+
+# 1. Use INSTALLED templates to spec the feature
+/specify "Add support for custom template variables"
+
+# 2. This creates specs/003-custom-variables/ using .claude/commands/specify.md (INSTALLED)
+
+# 3. Later, if implementing template changes:
+#    - Edit templates/commands/specify.md (SOURCE)
+#    - Test by running: speclaude init test-proj --local .
+#    - DO NOT update .claude/commands/specify.md (INSTALLED) directly
+```
 
 ### Key Workflows
 
@@ -163,7 +216,31 @@ get_repo_root() {
 **Why**: Enables multiple independent spec-kit projects in a single git repository (monorepo workflow).
 **Git Boundary**: Stops at first marker found - if `.git` is encountered first, doesn't continue to parent `.specify`.
 **Backward Compatible**: Single-project repos work exactly as before.
-See `specs/002-git-folder-priority/quickstart.md` for monorepo setup examples.
+
+**Monorepo Support Examples**:
+```bash
+# Example: Multiple spec-kit projects in a single git repository
+my-monorepo/                    # Root git repository
+├── .git/
+├── project-a/
+│   ├── .specify/              # First spec-kit project
+│   └── specs/
+└── project-b/
+    ├── .specify/              # Second spec-kit project
+    └── specs/
+
+# Each project-a/ and project-b/ is detected independently
+# cd project-a/ → finds .specify/ first (priority 1)
+# cd project-b/ → finds .specify/ first (priority 1)
+# Both can coexist in the same git repository
+
+# Initialize monorepo setup
+cd my-monorepo/project-a
+speclaude init --here          # Creates .specify/ in project-a/
+cd ../project-b
+speclaude init --here          # Creates .specify/ in project-b/
+```
+See `specs/002-git-folder-priority/quickstart.md` for detailed monorepo setup examples and edge cases.
 
 **Git Branch Removal** (scripts/bash/create-new-feature.sh:74):
 ```bash
@@ -235,7 +312,7 @@ fi
 
 ## File Structure
 
-**Dual Structure**: SOURCE (edit for distribution) + INSTALLED (frozen for dogfooding). See [Dogfooding](#dogfooding) section.
+**Dual Structure**: SOURCE (edit for distribution) + INSTALLED (frozen for dogfooding). See [Dogfooding - Self-Application](#dogfooding---self-application) section above.
 
 ```
 # SOURCE - Edit these to change what users receive
@@ -265,7 +342,7 @@ cd test-proj
 # 2. Verify directory structure
 ls -la .specify/templates/    # Should have 4 .md files
 ls -la .specify/scripts/bash/ # Should have 5 .sh files
-ls -la .claude/commands/      # Should have 7 .md files
+ls -la .claude/commands/      # Should have 8 .md files (constitution, clarify-constitution, specify, clarify, plan, tasks, analyze, implement)
 
 # 3. Test a script
 .specify/scripts/bash/create-new-feature.sh --json "test feature"
@@ -285,6 +362,102 @@ ls -la .genreleases/
 # Extract and verify
 cd /tmp && unzip -l ~/path/to/spec-kit/.genreleases/spec-kit-template-claude-sh-v0.0.99.zip
 # Should show .specify/templates/ with 4 files
+```
+
+## Debug and Troubleshooting
+
+### Common Issues and Solutions
+
+**1. Templates not found after init**
+```bash
+# Verify extraction succeeded
+ls -la .specify/templates/
+ls -la .claude/commands/
+
+# If empty, check for extraction errors in init output
+# Common causes: Network issues, GitHub rate limiting, corrupt zip
+```
+
+**2. Template extraction verification**
+```bash
+# After running init, verify all expected files
+tree .specify/ .claude/
+
+# Expected structure:
+# .specify/
+# ├── memory/
+# │   └── constitution.md (template)
+# ├── scripts/
+# │   └── bash/ (5 .sh files)
+# └── templates/ (4 .md files)
+# .claude/
+# └── commands/ (8 .md files)
+```
+
+**3. Script permission errors**
+```bash
+# If scripts aren't executable, manually fix:
+chmod +x .specify/scripts/bash/*.sh
+
+# Verify:
+ls -l .specify/scripts/bash/*.sh
+# Should show -rwxr-xr-x permissions
+```
+
+**4. Slash commands not appearing in Claude Code**
+```bash
+# Verify .claude/commands/ directory exists and contains files
+ls -la .claude/commands/
+
+# If missing, re-run init with --force
+speclaude init --here --force
+
+# Restart Claude Code to pick up new commands
+```
+
+**5. GitHub rate limiting during download**
+```bash
+# Use GitHub token for higher rate limits
+export GITHUB_TOKEN=ghp_your_token_here
+speclaude init my-project
+
+# Or use --github-token flag
+speclaude init my-project --github-token ghp_your_token_here
+
+# For offline/air-gapped environments
+# 1. Download release zip manually from GitHub releases
+# 2. Use --local flag to install from local repository
+git clone https://github.com/anagri/spec-kit.git
+speclaude init my-project --local /path/to/spec-kit
+```
+
+**6. Template processing debugging**
+```bash
+# Enable debug mode to see detailed extraction logs
+speclaude init test-project --debug
+
+# Check for nested directory flattening messages
+# Templates are pre-processed - no runtime transformation occurs
+```
+
+**7. Monorepo root detection issues**
+```bash
+# Verify which directory is detected as root
+cd your-project/
+.specify/scripts/bash/common.sh  # Source this to test get_repo_root()
+
+# Or check manually
+pwd
+# Should be at the directory containing .specify/ (highest priority)
+```
+
+**8. Constitution or template markers not resolving**
+```bash
+# Check for [NEEDS CLARIFICATION] markers
+grep -r "NEEDS CLARIFICATION" .specify/memory/constitution.md
+
+# Run /clarify-constitution to resolve them
+# Or manually edit the constitution file
 ```
 
 ## Common Development Tasks
@@ -336,18 +509,4 @@ When pulling changes from `github/spec-kit`:
 - **Step Tracker**: Custom Rich-based UI component for progress display (src/specify_cli/__init__.py:87-172). Uses circles (●/○) without emojis.
 - **Template Extraction**: Handles GitHub-style zips with nested directories. Flattens structure automatically (src/specify_cli/__init__.py:649-664).
 - **Script Permissions**: `ensure_executable_scripts()` sets `+x` on all `.sh` files recursively (POSIX only, no-op on Windows).
-
-## Dogfooding
-
-**Dual File Structure**: Spec-kit uses itself for development, creating two distinct file sets:
-
-1. **SOURCE** (`templates/`, `memory/`, `scripts/`) - Edit these to change what users receive
-2. **INSTALLED** (`.specify/`, `.claude/`) - Frozen snapshot from past install, used via `/specify`, `/plan`, etc.
-
-**Critical Rules**:
-- `.specify/` and `.claude/` are **frozen** - do NOT sync or update them when editing source
-- To change distribution: Edit `memory/constitution.md`, `templates/`, `scripts/`
-- To use spec-kit: Run `/constitution`, `/specify`, `/plan` (uses frozen `.specify/`, `.claude/`)
-- Editing `templates/commands/plan.md` does NOT affect `/plan` command (uses `.claude/commands/plan.md`)
-
-**Architecture Changes**: Consult `docs/PHILOSOPHY.md` for layer boundaries and extension patterns
+- **Templates are Pre-Processed**: All templates in `templates/` directory are stored in their final processed form. No runtime transformation occurs during installation. This was a one-time operation to simplify the release workflow and ensure `--local` flag produces identical output to GitHub releases.
